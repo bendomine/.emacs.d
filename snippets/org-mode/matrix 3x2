@@ -1,0 +1,9 @@
+# key: 3x2
+# name: matrix 3x2
+# condition: (texmathp)
+# --
+\begin{$1matrix}
+$2 & $3 \\\\
+$4 & $5 \\\\
+$6 & $7
+\end{$1matrix} $0

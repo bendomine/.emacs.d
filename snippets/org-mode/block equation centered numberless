@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: block equation centered numberless
+# key: eqc*
+# --
+\begin{gather*}
+$1
+\end{gather*}
+$0

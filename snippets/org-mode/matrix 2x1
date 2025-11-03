@@ -1,0 +1,5 @@
+# key: 2x1
+# name: matrix 2x1
+# condition: (texmathp)
+# --
+\begin{$1matrix} $2 \\\\ $3 \end{$1matrix} $0

@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: fractions /
+# key: /
+# condition: (texmathp)
+# --
+\frac{ $1 }{ $2 } $0

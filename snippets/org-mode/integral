@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: integral
+# key: int
+# condition: (texmathp)
+# --
+\int_{$1}^{$2} $3 \,\mathrm d$0

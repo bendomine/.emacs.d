@@ -1,0 +1,4 @@
+# key: \
+# name: inline equation
+# --
+\\( $1 \\)$0

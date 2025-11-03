@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: Inverse laplace transform
+# key: ilap
+# condition: (texmathp)
+# --
+\mathcal L^{-1} \left\\{ $1 \right\\}$0

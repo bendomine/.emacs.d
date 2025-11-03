@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: laplace transform
+# key: lap
+# condition: (texmathp)
+# --
+\mathcal L \left\{ $1 \right\} $0

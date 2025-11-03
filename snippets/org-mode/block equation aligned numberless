@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: block equation aligned numberless
+# key: eqa*
+# --
+\begin{align*}
+$1
+\end{align*}
+$0

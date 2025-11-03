@@ -1,0 +1,5 @@
+# key: lap
+# name: laplace transform
+# condition: (texmathp)
+# --
+\mathcal L \left\\{ $1 \right\\} $0

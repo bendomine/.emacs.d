@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: matrix 1x1
+# key: 1x1
+# condition: (texmathp)
+# --
+\begin{$1matrix} $2 \end{$1matrix} $0
