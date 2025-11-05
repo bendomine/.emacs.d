@@ -107,10 +107,17 @@
 
 
 ;; Flycheck is the newer version of flymake and is needed to make lsp-mode not freak out.
-(use-package flycheck
-	:config
-	(add-hook 'prog-mode-hook 'flycheck-mode) ;; always lint my code
-	(add-hook 'after-init-hook #'global-flycheck-mode))
+;; (use-package flycheck
+;; 	:config
+;; 	(add-hook 'prog-mode-hook 'flycheck-mode) ;; always lint my code
+;; 	(add-hook 'after-init-hook #'global-flycheck-mode))
+(defun enable-flymake ()
+	"Enable flymake in current buffer."
+	(flymake-mode)
+	(setq-local flymake-fringe-indicator-position nil))
+(add-hook 'prog-mode-hook #'enable-flymake)
+
+;; (define-key eglot-mode-map (kbd "C-c a") 'eglot-code-actions)
 
 ;; Tree!
 (use-package treemacs
@@ -126,6 +133,7 @@
 (add-to-list 'load-path
     "~/.emacs.d/plugins/yasnippet")
 (require 'yasnippet)
+
 
 
 ;; Icons/nerd fonts
@@ -215,6 +223,7 @@ Buffers starting with \"Untitled\" will be treated as part of all groups."
 	(centaur-tabs-mode t)
 	)
 (setq centaur-tabs-show-navigation-buttons t)
+(add-hook 'special-mode-hook 'centaur-tabs-local-mode)
 
 
 ;; Doom modeline
@@ -366,6 +375,8 @@ Buffers starting with \"Untitled\" will be treated as part of all groups."
 ;; Hooks
 (add-hook 'text-mode-hook 'visual-line-mode)
 (add-hook 'prog-mode-hook 'display-line-numbers-mode)
+(setq display-line-numbers-width-start t)
+(setq display-line-numbers-grow-only t)
 (add-hook 'window-setup-hook (lambda ()
 								 (run-at-time "0.3 sec" nil #'bendomine/splash-screen)))
 

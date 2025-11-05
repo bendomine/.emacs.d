@@ -9,6 +9,7 @@
 	  '("4d5d11bfef87416d85673947e3ca3d3d5d985ad57b02a7bb2e32beaf785a100e" "0325a6b5eea7e5febae709dab35ec8648908af12cf2d2b569bedc8da0a3a81c1" default))
  '(electric-pair-mode t)
  '(electric-quote-mode t)
+ '(fringe-mode '(1 . 1) nil (fringe))
  '(inhibit-startup-screen t)
  '(org-babel-python-command "python3")
  '(org-confirm-babel-evaluate nil)
