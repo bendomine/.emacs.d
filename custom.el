@@ -6,22 +6,22 @@
  '(cursor-type 'bar)
  '(custom-enabled-themes '(deeper-blue))
  '(custom-safe-themes
-   '("4d5d11bfef87416d85673947e3ca3d3d5d985ad57b02a7bb2e32beaf785a100e" "0325a6b5eea7e5febae709dab35ec8648908af12cf2d2b569bedc8da0a3a81c1" default))
+	  '("4d5d11bfef87416d85673947e3ca3d3d5d985ad57b02a7bb2e32beaf785a100e" "0325a6b5eea7e5febae709dab35ec8648908af12cf2d2b569bedc8da0a3a81c1" default))
  '(electric-pair-mode t)
  '(electric-quote-mode t)
- '(inhibit-startup-screen nil)
+ '(inhibit-startup-screen t)
  '(org-babel-python-command "python3")
  '(org-confirm-babel-evaluate nil)
  '(org-format-latex-options
-   '(:foreground default :background default :scale 1.55 :html-foreground "Black" :html-background "Transparent" :html-scale 1.0 :matchers
-				 ("begin" "$1" "$" "$$" "\\(" "\\[")))
+	  '(:foreground default :background default :scale 1.55 :html-foreground "Black" :html-background "Transparent" :html-scale 1.0 :matchers
+		   ("begin" "$1" "$" "$$" "\\(" "\\[")))
  '(org-hide-emphasis-markers t)
  '(org-highlight-latex-and-related '(native latex script entities))
  '(org-preview-latex-default-process 'dvisvgm)
  '(org-return-follows-link t)
  '(org-support-shift-select t)
  '(package-selected-packages
-   '(multiple-cursors centaur-tabs all-the-icons treemacs flycheck doom-themes exec-path-from-shell orderless consult marginalia corfu vertico yasnippet auctex))
+	  '(nerd-icons doom-modeline multiple-cursors centaur-tabs treemacs flycheck doom-themes exec-path-from-shell orderless consult marginalia corfu vertico yasnippet auctex))
  '(pixel-scroll-mode t)
  '(pixel-scroll-precision-mode t)
  '(ring-bell-function 'ignore)

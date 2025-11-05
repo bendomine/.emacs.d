@@ -119,7 +119,7 @@
 	:config
 	;; Integrate with project.el
 	(setq treemacs-project-follow-cleanup t))
-;; (setq treemacs-sorting 'alphabetic-case-insensitive)
+(global-set-key (kbd "C-c t") 'treemacs)
 
 
 ;; Snippets and LaTeX
@@ -127,10 +127,18 @@
     "~/.emacs.d/plugins/yasnippet")
 (require 'yasnippet)
 
-;; Tab bar
-(use-package all-the-icons
-	:if (display-graphic-p))
 
+;; Icons/nerd fonts
+(use-package nerd-icons
+	:custom
+	;; The Nerd Font you want to use in GUI
+	;; "Symbols Nerd Font Mono" is the default and is recommended
+	;; but you can use any other Nerd Font if you want
+	(nerd-icons-font-family "Symbols Nerd Font Mono")
+	)
+
+
+;; Tab bar
 (defun centaur-tabs-buffer-groups ()
 	"`centaur-tabs-buffer-groups' control buffers' group rules.
 
@@ -184,7 +192,7 @@ Buffers starting with \"Untitled\" will be treated as part of all groups."
 
 		;; Show icons
 		centaur-tabs-set-icons t
-		centaur-tabs-icon-type 'all-the-icons
+		centaur-tabs-icon-type 'nerd-icons
 
 		;; Modified marker
 		centaur-tabs-set-modified-marker t
@@ -203,21 +211,98 @@ Buffers starting with \"Untitled\" will be treated as part of all groups."
 		)
 	:config
 	;; Enable tabs
-	;;(setq centaur-tabs-bar-height 50)
 	(set-face-attribute 'centaur-tabs-default nil :height 5)
 	(centaur-tabs-mode t)
-
-	;; Style options: "bar", "slant", "wave"
 	)
+(setq centaur-tabs-show-navigation-buttons t)
+
+
+;; Doom modeline
+;; https://github.com/seagle0128/doom-modeline?tab=readme-ov-file#customize
+(use-package doom-modeline
+	:ensure t
+	:init (doom-modeline-mode 1))
+
+;; Prevent lag
+(setq inhibit-compacting-font-caches t)
 
 ;; Multiple Cursors
 ;; https://github.com/magnars/multiple-cursors.el?tab=readme-ov-file#command-overview
 (require 'multiple-cursors)
 (global-set-key (kbd "C-d") 'mc/mark-next-like-this-word)
 (global-set-key (kbd "C-S-d") 'mc/unmark-next-like-this)
-(add-hook 'multiple-cursors-mode-hook (lambda () (setq delete-selection-mode nil)))
-(add-hook 'multiple-cursors-mode-disabled-hook (lambda () (setq delete-selection-mode t)))
+(add-hook 'multiple-cursors-mode-hook (lambda () (delete-selection-mode -1)))
+(add-hook 'multiple-cursors-mode-disabled-hook (lambda () (delete-selection-mode 1)))
+(delete-selection-mode 1)
+
 (define-key mc/keymap (kbd "<return>") nil)
+
+
+;; Custom splash screen
+
+(defun center-and-newline (text)
+	"Insert the provided TEXT, center and newline."
+	(insert text)
+	(center-line)
+	(insert "\n"))
+
+(defun bendomine/create-splash-screen()
+	(read-only-mode -1)
+	(erase-buffer)
+	
+	(set-fill-column (window-body-width nil))
+
+	(let* (
+			  (height (- (window-body-height nil) 1))
+			  (offset 20)
+			  (vertical-padding (- (/ height 2) offset)))
+		(insert-char ?\n vertical-padding))
+	
+	(center-and-newline "+---------------------------------------------------------+")
+	(center-and-newline "| 8888888888888b     d888       d8888 .d8888b.  .d8888b.  |")
+	(center-and-newline "| 888       8888b   d8888      d88888d88P  Y88bd88P  Y88b |")
+	(center-and-newline "| 888       88888b.d88888     d88P888888    888Y88b.      |")
+	(center-and-newline "| 8888888   888Y88888P888    d88P 888888        \"Y888b.   |")
+	(center-and-newline "| 888       888 Y888P 888   d88P  888888           \"Y88b. |")
+	(center-and-newline "| 888       888  Y8P  888  d88P   888888    888      \"888 |")
+	(center-and-newline "| 888       888   \"   888 d8888888888Y88b  d88PY88b  d88P |")
+	(center-and-newline "| 8888888888888       888d88P     888 \"Y8888P\"  \"Y8888P\"  |")
+	(center-and-newline "+---------------------------------------------------------+")
+	
+	(insert "\n")
+	
+	(center-and-newline "Customized by Ben Domine")
+	(insert "\n\n")
+
+	(insert-text-button "Open config file" 'action (lambda (_) (config)) 'follow-link t)
+	(center-line) (insert "\n\n")
+
+	(insert-text-button "Create org document" 'action (lambda (_)
+														  (let ((buffer (generate-new-buffer "New org document")))
+															  (switch-to-buffer buffer)
+															  (org-mode))) 'follow-link t)
+	(center-line) (insert "\n")
+
+	(setq mode-line-format nil)
+	(setq cursor-type nil)
+	(setq horizontal-scroll-bar nil)
+	(setq vertical-scroll-bar nil)
+
+	(read-only-mode 1)
+	(buffer-disable-undo))
+
+(defun bendomine/splash-screen ()
+	"Display my custom splash screen."
+	(interactive)
+	
+	(let ((new-buffer (get-buffer-create "*Splash Screen*")))
+		(with-current-buffer new-buffer
+			(bendomine/create-splash-screen))
+
+		(switch-to-buffer new-buffer)
+		(if (or centaur-tabs-mode centaur-tabs-local-mode) (centaur-tabs-local-mode))
+		(message "")))
+
 
 ;; Duplicating lines and moving them around, vscode-style
 (global-set-key (kbd "M-S-<up>") 'duplicate-line)
@@ -278,16 +363,20 @@ Buffers starting with \"Untitled\" will be treated as part of all groups."
 (add-hook 'prog-mode-hook (lambda () (setq indent-tabs-mode t)))
 
 
-
 ;; Hooks
 (add-hook 'text-mode-hook 'visual-line-mode)
+(add-hook 'prog-mode-hook 'display-line-numbers-mode)
+(add-hook 'window-setup-hook (lambda ()
+								 (run-at-time "0.3 sec" nil #'bendomine/splash-screen)))
 
 ;; Keybindings
 (global-set-key (kbd "C-w") nil)
+(global-set-key (kbd "C-<wheel-up>") nil)
+(global-set-key (kbd "C-<wheel-down>") nil)
 
 ;; Auctex
 (setq TeX-auto-save t)
-0(setq TeX-parse-self t)
+(setq TeX-parse-self t)
 (setq-default TeX-master nil)
 
 ;; My new commands
@@ -307,7 +396,7 @@ Buffers starting with \"Untitled\" will be treated as part of all groups."
 (defun config ()
 	"Find the config file."
 	(interactive)
-	(find-file "~/.emacs"))
+	(find-file "~/.emacs.d/init.el"))
 
 ;; Org Mode
 (add-hook 'org-mode-hook 'visual-line-mode)
