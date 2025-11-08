@@ -6,6 +6,12 @@
 (setq custom-file "~/.emacs.d/custom.el") ;; Make customize variables go somewhere else
 (load custom-file 'noerror)
 
+;; Tree sitter
+(require 'tree-sitter)
+(require 'tree-sitter-langs)
+(global-tree-sitter-mode)
+(add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode)
+
 ;; PACKAGES
 
 (require 'package)
@@ -46,8 +52,11 @@
 ;; https://github.com/doomemacs/themes/tree/screenshots
 (use-package doom-themes
 	:init
-	(load-theme 'doom-vibrant))
+	(load-theme 'doom-henna))
 
+;;(set-face-attribute 'centaur-tabs-active-bar-face nil :inherit 'highlight)
+(set-face-attribute 'line-number-current-line nil
+	:foreground (face-attribute 'highlight :background))
 
 ;; Completions
 ;; Vertico for vertical completion for the emacs minibuffer.
@@ -106,16 +115,16 @@
 	(completion-category-overrides '((file (styles partial-completion)))))
 
 
-;; Flycheck is the newer version of flymake and is needed to make lsp-mode not freak out.
-;; (use-package flycheck
-;; 	:config
-;; 	(add-hook 'prog-mode-hook 'flycheck-mode) ;; always lint my code
-;; 	(add-hook 'after-init-hook #'global-flycheck-mode))
-(defun enable-flymake ()
-	"Enable flymake in current buffer."
-	(flymake-mode)
-	(setq-local flymake-fringe-indicator-position nil))
-(add-hook 'prog-mode-hook #'enable-flymake)
+
+;; Flymake
+(use-package flycheck
+  :config
+  (add-hook 'prog-mode-hook 'flycheck-mode) ;; always lint my code
+  (add-hook 'after-init-hook #'global-flycheck-mode))
+(add-hook 'c++-mode-hook (lambda () (setq flycheck-gcc-language-standard "c++11" flycheck-clang-language-standard "c++11")))
+(add-hook 'c++-mode-hook (lambda () (setq flycheck-gcc-language-standard "c++11")))
+(add-hook 'c++-mode-hook (lambda () (setq flycheck-clang-language-standard "c++11")))
+
 
 ;; (define-key eglot-mode-map (kbd "C-c a") 'eglot-code-actions)
 
@@ -133,9 +142,21 @@
 (add-to-list 'load-path
     "~/.emacs.d/plugins/yasnippet")
 (require 'yasnippet)
+;;CDLatex
+(require 'cdlatex)
+(setq cdlatex-command-alist
+	'(("lap" "Insert Laplace transform" "\\mathcal L {" cdlatex-lr-pair nil nil t)
+		 ("ilap" "Insert inverse Laplace transform" "\\mathcal L^{-1} {" cdlatex-lr-pair nil nil t)
+		 ("lim" "Insert limit" "\\lim_{?}" cdlatex-position-cursor nil nil t)
+		 ("()" "Insert inline math" "\\(?\\)" cdlatex-position-cursor nil t nil)))
 
-
-
+(defun begin-inline-math ()
+	"Begins an inline math environment with \\(\\).  Requires cdlatex."
+	(interactive)
+	(insert "\\(?\\)")
+	(cdlatex-position-cursor))
+(add-hook 'org-cdlatex-mode-hook (lambda ()
+									 (keymap-set org-cdlatex-mode-map "C-(" #'begin-inline-math)))
 ;; Icons/nerd fonts
 (use-package nerd-icons
 	:custom
@@ -207,9 +228,10 @@ Buffers starting with \"Untitled\" will be treated as part of all groups."
 
 		;; Bar position: 'over, 'under, nil
 		centaur-tabs-set-bar 'left
+		;;centaur-tabs-active-bar
 
-		;; Show the "+" button for new tabs
-		centaur-tabs-show-new-tab-button t
+		;; Don’t show the "+" button for new tabs
+		centaur-tabs-show-new-tab-button nil
 
 		;; Cycle only through tabs, not groups
 		centaur-tabs-cycle-scope 'tabs
@@ -370,6 +392,7 @@ Buffers starting with \"Untitled\" will be treated as part of all groups."
 (setq lisp-indent-offset 4)
 
 (add-hook 'prog-mode-hook (lambda () (setq indent-tabs-mode t)))
+(add-hook 'prog-mode-hook 'electric-pair-local-mode)
 
 
 ;; Hooks
@@ -412,12 +435,13 @@ Buffers starting with \"Untitled\" will be treated as part of all groups."
 ;; Org Mode
 (add-hook 'org-mode-hook 'visual-line-mode)
 (add-hook 'org-mode-hook 'org-indent-mode)
-(add-hook 'org-mode-hook
-    (lambda ()
-        (setq-local yas/trigger-key [tab])
-        (define-key yas/keymap [tab] 'yas-next-field-or-maybe-expand)))
+(add-hook 'org-mode-hook #'turn-on-org-cdlatex)
+;; (add-hook 'org-mode-hook
+;;     (lambda ()
+;;         (setq-local yas/trigger-key [tab])
+;;         (define-key yas/keymap [tab] 'yas-next-field-or-maybe-expand)))
 
 ;; YASnippet
-(keymap-global-set "C-<tab>" 'yas-expand)
+;;(keymap-global-set "C-<tab>" 'yas-expand)
 
 ;;; .emacs ends here.

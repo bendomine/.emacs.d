@@ -6,8 +6,7 @@
  '(cursor-type 'bar)
  '(custom-enabled-themes '(deeper-blue))
  '(custom-safe-themes
-	  '("4d5d11bfef87416d85673947e3ca3d3d5d985ad57b02a7bb2e32beaf785a100e" "0325a6b5eea7e5febae709dab35ec8648908af12cf2d2b569bedc8da0a3a81c1" default))
- '(electric-pair-mode t)
+	  '("dd4582661a1c6b865a33b89312c97a13a3885dc95992e2e5fc57456b4c545176" "4d5d11bfef87416d85673947e3ca3d3d5d985ad57b02a7bb2e32beaf785a100e" "0325a6b5eea7e5febae709dab35ec8648908af12cf2d2b569bedc8da0a3a81c1" default))
  '(electric-quote-mode t)
  '(fringe-mode '(1 . 1) nil (fringe))
  '(inhibit-startup-screen t)
@@ -22,14 +21,13 @@
  '(org-return-follows-link t)
  '(org-support-shift-select t)
  '(package-selected-packages
-	  '(nerd-icons doom-modeline multiple-cursors centaur-tabs treemacs flycheck doom-themes exec-path-from-shell orderless consult marginalia corfu vertico yasnippet auctex))
+	  '(magit cdlatex tree-sitter-langs tree-sitter nerd-icons doom-modeline multiple-cursors centaur-tabs treemacs flycheck doom-themes exec-path-from-shell orderless consult marginalia corfu vertico yasnippet auctex))
  '(pixel-scroll-mode t)
  '(pixel-scroll-precision-mode t)
  '(ring-bell-function 'ignore)
  '(scroll-bar-mode nil)
  '(send-mail-function 'mailclient-send-it)
- '(tab-bar-new-tab-choice "*GNU Emacs*")
- '(yas-global-mode t))
+ '(tab-bar-new-tab-choice "*Splash Screen*"))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
