@@ -1,0 +1,11 @@
+*
+!init.el
+!custom.el
+!config.org
+!config.el
+!my-project-manager.el
+!snippets
+!.gitignore
+!snippets/
+!snippets/*
+!snippets/**
