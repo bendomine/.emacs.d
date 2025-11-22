@@ -4,9 +4,8 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(cursor-type 'bar)
- '(custom-enabled-themes '(deeper-blue))
  '(custom-safe-themes
-	  '("dd4582661a1c6b865a33b89312c97a13a3885dc95992e2e5fc57456b4c545176" "4d5d11bfef87416d85673947e3ca3d3d5d985ad57b02a7bb2e32beaf785a100e" "0325a6b5eea7e5febae709dab35ec8648908af12cf2d2b569bedc8da0a3a81c1" default))
+	  '("aec7b55f2a13307a55517fdf08438863d694550565dee23181d2ebd973ebd6b8" "dd4582661a1c6b865a33b89312c97a13a3885dc95992e2e5fc57456b4c545176" default))
  '(electric-quote-mode t)
  '(fringe-mode '(1 . 1) nil (fringe))
  '(inhibit-startup-screen t)
@@ -21,9 +20,9 @@
  '(org-return-follows-link t)
  '(org-support-shift-select t)
  '(package-selected-packages
-	  '(magit cdlatex tree-sitter-langs tree-sitter nerd-icons doom-modeline multiple-cursors centaur-tabs treemacs flycheck doom-themes exec-path-from-shell orderless consult marginalia corfu vertico yasnippet auctex))
+	  '(projectile glsl-mode magit cdlatex tree-sitter-langs tree-sitter nerd-icons doom-modeline multiple-cursors centaur-tabs treemacs flycheck doom-themes exec-path-from-shell orderless consult marginalia corfu vertico yasnippet auctex))
  '(pixel-scroll-mode t)
- '(pixel-scroll-precision-mode t)
+ '(pixel-scroll-precision-mode nil)
  '(ring-bell-function 'ignore)
  '(scroll-bar-mode nil)
  '(send-mail-function 'mailclient-send-it)
