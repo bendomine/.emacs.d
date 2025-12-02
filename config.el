@@ -35,9 +35,9 @@
     (global-set-key (kbd "s-SPC") 'set-mark-command))
 
 (use-package nerd-icons
-  :custom
-  (nerd-icons-font-family "Symbols Nerd Font Mono")
-  )
+    :custom
+    (nerd-icons-font-family "Symbols Nerd Font Mono")
+    )
 
 (use-package doom-themes
     :init
@@ -47,8 +47,8 @@
     :foreground (face-attribute 'highlight :background))
 
 (use-package doom-modeline
-  :ensure t
-  :init (doom-modeline-mode 1))
+    :ensure t
+    :init (doom-modeline-mode 1))
 
 (setq inhibit-compacting-font-caches t)
 
@@ -98,6 +98,27 @@
     :bind (:map projectile-mode-map
               ("C-c C-p" . projectile-command-map)))
 
+(use-package avy
+    :ensure t
+    :config
+    (setq avy-timeout-seconds 0.25)
+    :bind (("M-j" . avy-goto-char-timer)))
+
+(package-install 'multiple-cursors)
+(require 'multiple-cursors)
+
+(global-set-key (kbd "C-d") 'mc/mark-next-like-this-word)
+(global-set-key (kbd "C-S-d") 'mc/unmark-next-like-this)
+
+(delete-selection-mode 1)
+(add-hook 'multiple-cursors-mode-hook (lambda () (delete-selection-mode -1)))
+(add-hook 'multiple-cursors-mode-disabled-hook (lambda () (delete-selection-mode 1)))
+
+(define-key mc/keymap (kbd "<return") nil)
+
+(with-eval-after-load 'c++-mode
+    (define-key c++-mode-map (kbd "C-d") nil))
+
 (use-package which-key
     :ensure t
     :config
@@ -131,7 +152,13 @@
     :init
     (global-corfu-mode))
 
+;;  (setq corfu-auto-delay 0.2)
 
+(use-package orderless
+    :custom
+    (completion-styles '(orderless basic))
+    (completion-category-defaults nil)
+    (completion-category-overrides '((file (styles partial-completion)))))
 
 (package-install 'org-modern)
 (with-eval-after-load 'org (global-org-modern-mode))
@@ -185,35 +212,6 @@
     (consult-customize consult-theme consult-line consult-line-at-point :preview-key '(:debounce 0.2 any))
     )
 
-;; In buffer completions, think lsp completions
-(use-package corfu
-    :custom
-    (corfu-auto t)
-    (corfu-cycle t) ;; Enable cycling for `corfu-next/previous'
-    :bind
-    (:map corfu-map
-        ("TAB" . corfu-next)
-        ("C-n" . corfu-next)
-        ([tab] . corfu-next)
-        ("C-p" . corfu-previous)
-        ("S-TAB" . corfu-previous)
-        ([backtab] . corfu-previous)
-        ("ESC" . corfu-quit))
-    :init
-    (global-corfu-mode))
-
-(setq corfu-auto-delay 0.2
-    corfu-auto-prefix 2)
-
-;; Completion style and fuzzy matching
-(use-package orderless
-    :custom
-    (completion-styles '(orderless basic))
-    (completion-category-defaults nil)
-    (completion-category-overrides '((file (styles partial-completion)))))
-
-
-
 ;; Flycheck
 (use-package flycheck
     :config
@@ -241,15 +239,6 @@
     "~/.emacs.d/plugins/yasnippet")
 (require 'yasnippet)
 
-;; Multiple Cursors
-;; https://github.com/magnars/multiple-cursors.el?tab=readme-ov-file#command-overview
-(require 'multiple-cursors)
-(global-set-key (kbd "C-d") 'mc/mark-next-like-this-word)
-(global-set-key (kbd "C-S-d") 'mc/unmark-next-like-this)
-(add-hook 'multiple-cursors-mode-hook (lambda () (delete-selection-mode -1)))
-(add-hook 'multiple-cursors-mode-disabled-hook (lambda () (delete-selection-mode 1)))
-(delete-selection-mode 1)
-
 (with-eval-after-load 'c++-mode
     (define-key c++-mode-map (kbd "C-d") nil))
 
@@ -261,15 +250,6 @@
     :ensure t
     ;; For some reason this package rebinds this
     :bind (:map glsl-mode-map ("C-d" . nil)))
-
-
-;; Avy
-(use-package avy
-    :ensure t
-    :config
-    (setq avy-timeout-seconds 0.25)
-    :bind (("M-j" . avy-goto-char-timer)))
-
 
 ;; Custom splash screen
 
@@ -409,7 +389,6 @@
                                  (run-at-time "0.3 sec" nil #'bendomine/splash-screen)))
 
 ;; Keybindings
-(global-set-key (kbd "C-w") nil)
 (global-set-key (kbd "C-<wheel-up>") nil)
 (global-set-key (kbd "C-<wheel-down>") nil)
 

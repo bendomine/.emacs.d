@@ -217,7 +217,37 @@ I use Avy to quickly jump to any visible text. The function I primarily use here
 
 #+end_src
 ** Multiple Cursors
-This one’s pretty straightforward.
+This one’s pretty straightforward. As a former VSCode user, I like multiple cursors for simultaneously editing different things (and it just looks really cool).
+#+begin_src emacs-lisp
+  (package-install 'multiple-cursors)
+  (require 'multiple-cursors)
+#+end_src
+
+Note: a list of mc commands can be found [[https://github.com/magnars/multiple-cursors.el?tab=readme-ov-file#command-overview][here]].
+
+I’m not using anything close to the full functionality of this package; for now, I just want to bind C-d and C-S-d to mark and unmark the next instances of the current word.
+#+begin_src emacs-lisp
+  (global-set-key (kbd "C-d") 'mc/mark-next-like-this-word)
+  (global-set-key (kbd "C-S-d") 'mc/unmark-next-like-this)
+#+end_src
+
+When using this command, the word is selected by default. This leads to some inconvenience, so I’ll disable delete-selection-mode so that it’s possible to type stuff at the end of a word after using this command. We then re-enable it after exiting mc mode. I also make sure delete-selection-mode is enabled to begin with.
+#+begin_src emacs-lisp
+  (delete-selection-mode 1)
+  (add-hook 'multiple-cursors-mode-hook (lambda () (delete-selection-mode -1)))
+  (add-hook 'multiple-cursors-mode-disabled-hook (lambda () (delete-selection-mode 1)))
+#+end_src
+
+By default, return is bound to disable mc mode. I dislike this.
+#+begin_src emacs-lisp
+  (define-key mc/keymap (kbd "<return") nil)
+#+end_src
+
+Finally, the c++ mode keymap eats C-d. It would be better practice to bind it to something like C-c d, but I’m more used to C-d, so I’ll try to rebind that. Note: this doesn’t actually work 😥.
+#+begin_src emacs-lisp
+  (with-eval-after-load 'c++-mode
+      (define-key c++-mode-map (kbd "C-d") nil))
+#+end_src
 
 * Completions and Search
 ** Keybinding Completion
@@ -390,15 +420,6 @@ I’ll also use Auctex for some other LaTeX utilities like syntax highlighting.
       "~/.emacs.d/plugins/yasnippet")
   (require 'yasnippet)
 
-  ;; Multiple Cursors
-  ;; https://github.com/magnars/multiple-cursors.el?tab=readme-ov-file#command-overview
-  (require 'multiple-cursors)
-  (global-set-key (kbd "C-d") 'mc/mark-next-like-this-word)
-  (global-set-key (kbd "C-S-d") 'mc/unmark-next-like-this)
-  (add-hook 'multiple-cursors-mode-hook (lambda () (delete-selection-mode -1)))
-  (add-hook 'multiple-cursors-mode-disabled-hook (lambda () (delete-selection-mode 1)))
-  (delete-selection-mode 1)
-
   (with-eval-after-load 'c++-mode
       (define-key c++-mode-map (kbd "C-d") nil))
 
@@ -410,15 +431,6 @@ I’ll also use Auctex for some other LaTeX utilities like syntax highlighting.
       :ensure t
       ;; For some reason this package rebinds this
       :bind (:map glsl-mode-map ("C-d" . nil)))
-
-
-  ;; Avy
-  (use-package avy
-      :ensure t
-      :config
-      (setq avy-timeout-seconds 0.25)
-      :bind (("M-j" . avy-goto-char-timer)))
-
 
   ;; Custom splash screen
 
@@ -558,7 +570,6 @@ I’ll also use Auctex for some other LaTeX utilities like syntax highlighting.
                                    (run-at-time "0.3 sec" nil #'bendomine/splash-screen)))
 
   ;; Keybindings
-  (global-set-key (kbd "C-w") nil)
   (global-set-key (kbd "C-<wheel-up>") nil)
   (global-set-key (kbd "C-<wheel-down>") nil)
 
