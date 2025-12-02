@@ -61,14 +61,28 @@ Finally, some settings for use-pacakge. We want to make ensure the default, whic
       use-package-always-ensure t
       use-package-verbose t)
 #+end_src
+* Keybindings
+** Mac Rebinding
+I primarily use Mac, so I want most keybindings to use the command key. So, I’ll switch the command and control keys.
+#+begin_src emacs-lisp
+  (setq mac-command-modifier 'control)
+  (setq mac-control-modifier 'super)
+#+end_src
+
+This means that I need to resolve the keyboard conflicts that arise from mac taking over certain commands, such as command + space.
+#+begin_src emacs-lisp
+  (if (eq system-type 'darwin)
+      (global-set-key (kbd "s-SPC") 'set-mark-command))
+#+end_src
+
 * UI
 ** Icons
 I’m using nerd-icons for doom-modeline and other icon-requiring packages.
 #+begin_src emacs-lisp
   (use-package nerd-icons
-    :custom
-    (nerd-icons-font-family "Symbols Nerd Font Mono")
-    )
+      :custom
+      (nerd-icons-font-family "Symbols Nerd Font Mono")
+      )
 #+end_src
 
 Note: if this doesn’t work on a new computer, run nerd-icons-install-fonts.
@@ -87,7 +101,7 @@ This is a short list of themes I like:
 - Doom-snazzy (pretty basic but nice contrast)
 - Doom-dracula (I really like this one actually)
 :END:
-For now I’ll just go with city-lights.
+For now I’ll just go with dark+.
 #+begin_src emacs-lisp :results silent
   (use-package doom-themes
       :init
@@ -104,8 +118,8 @@ I want the active line number in line number mode to be highlighted more brightl
 So far, my modeline is just a mostly uncustomized doom-modeline. The documentation options can be found at [[https://github.com/seagle0128/doom-modeline][the github repo]].
 #+begin_src emacs-lisp
   (use-package doom-modeline
-    :ensure t
-    :init (doom-modeline-mode 1))
+      :ensure t
+      :init (doom-modeline-mode 1))
 #+end_src
 
 I’ve had some issues with lag in the past, and I heard that this was supposed to help:
@@ -121,9 +135,16 @@ Let’s take advantage of the icons we’ve added and force doom-modeline to use
 I also want to see the time, but not the system load average:
 #+begin_src emacs-lisp
   (setq display-time-default-load-average nil)
-  (display-time)
-  (setq doom-modeline-time t)
   (setq doom-modeline-time-icon t)
+  (setq doom-modeline-time t)
+  (display-time)
+#+end_src
+
+Just for fun, I’ll also enable the battery indicator, updating every 30 seconds:
+#+begin_src emacs-lisp
+  (setq battery-update-interval 30)
+  (setq doom-modeline-battery t)
+  (display-battery-mode +1)
 #+end_src
 
 ** Tabs
@@ -161,20 +182,168 @@ At some point, I’ll add functionality to hide the tab bar when in a buffer tha
   (add-hook 'special-mode-hook 'centaur-tabs-local-mode)
 #+end_src
 
+** Minibuffer
+Using vertico-posframe, it’s possible to have the minibuffer in the center of the screen. I’m not sure how much I’ll like this functionality, but I’ll test it out for now.
+#+begin_src emacs-lisp
+  (use-package vertico-posframe
+      :after vertico
+      :config
+      (setq vertico-posframe-handler
+          'posframe-poshandler-frame-center)
+      (vertico-posframe-mode 1))
+#+end_src
+
 * Core Editing
-** 
 ** Project Management
 I originally used project.el, but I’ve decided to try projectile instead. I’ll add that now:
 #+begin_src emacs-lisp
   (use-package projectile
       :ensure t
       :init
+      (setq projectile-project-search-path '("~/Coding"))
+      :config
       (projectile-mode +1)
       :bind (:map projectile-mode-map
-                ("s-p" . projectile-command-map)
                 ("C-c C-p" . projectile-command-map)))
 #+end_src
- 
+** Jumping
+I use Avy to quickly jump to any visible text. The function I primarily use here is goto-char-timer, and I’ve dropped that timer all the way down to 0.25 seconds for speed.
+#+begin_src emacs-lisp
+  (use-package avy
+      :ensure t
+      :config
+      (setq avy-timeout-seconds 0.25)
+      :bind (("M-j" . avy-goto-char-timer)))
+
+#+end_src
+** Multiple Cursors
+This one’s pretty straightforward.
+
+* Completions and Search
+** Keybinding Completion
+I’ll use the which-key package to help with completions for keybindings.
+#+begin_src emacs-lisp
+  (use-package which-key
+      :ensure t
+      :config
+      (which-key-mode +1))
+#+end_src
+** Minibuffer Completion
+For completion in the minibuffer, I’ll use vertico:
+#+begin_src emacs-lisp
+  (use-package vertico
+      :init
+      (vertico-mode))
+#+end_src
+
+I also want to hide all commands that aren’t available in the current mode. This snippet comes from the Shane Kennedy blog post I linked previously.
+#+begin_src emacs-lisp
+  (use-package emacs
+      :custom
+      (read-extended-command-predicate #'command-completion-default-include-p))
+#+end_src
+
+Finally, I’ll use marginalia. This package makes it so that the completion options in the minibuffer also display the docstring for that command.
+#+begin_src emacs-lisp
+  (use-package marginalia
+      :init
+      (marginalia-mode))
+#+end_src
+** In-Buffer Completion
+As far as I can tell, there are two primary options for in-buffer completion: company and corfu. Because I’m already using other Minad packages, it seems most logical to go for corfu here. This is a pretty minimal setup. I currently have a map that’s commented out, because I’m still deciding on the best keybindings here.
+#+begin_src emacs-lisp
+  (use-package corfu
+      :custom
+      (corfu-auto t)
+      (corfu-cycle t) ;; Enable cycling for `corfu-next/previous'
+      :bind
+      (:map corfu-map
+          ;;     ("TAB" . corfu-next)
+          ;;     ("C-n" . corfu-next)
+          ;;     ([tab] . corfu-next)
+          ;;     ("C-p" . corfu-previous)
+          ;;     ("S-TAB" . corfu-previous)
+          ;;     ([backtab] . corfu-previous)
+          ("ESC" . corfu-quit))
+      :init
+      (global-corfu-mode))
+#+end_src
+
+I also want to delay the completion a little bit, instead of it popping up immediately. I have this code set up to add a time delay of 0.2 seconds; however, the corfu documentation states that this can create lag, so I’ve commented it out for now.
+#+begin_src emacs-lisp
+;;  (setq corfu-auto-delay 0.2)
+#+end_src
+** Fuzzy Matching
+I use orderless to give completions fuzzy matching. This particular bit of code is copied directly from the Shane Kennedy blog post.
+#+begin_src emacs-lisp
+  (use-package orderless
+      :custom
+      (completion-styles '(orderless basic))
+      (completion-category-defaults nil)
+      (completion-category-overrides '((file (styles partial-completion)))))
+#+end_src
+
+* Org Mode
+** UI Improvements
+I’m using org-modern to improve the ui on org-mode documents. I haven’t customized this much yet, but probably will do so in the future.
+#+begin_src emacs-lisp
+  (package-install 'org-modern)
+  (with-eval-after-load 'org (global-org-modern-mode))
+#+end_src
+
+I also want my documents centered when on a larger screen, so I’ll use Olivetti.
+#+begin_src emacs-lisp
+  (package-install 'olivetti)
+  (setq olivetti-body-width 0.6)
+  (add-hook 'org-mode-hook #'olivetti-mode)
+#+end_src
+
+Finally, I always want org indent mode on. This indents subsequent headings and just makes it much easier to see what heading I’m under. I’ll also enable visual line mode.
+#+begin_src emacs-lisp
+  (add-hook 'org-mode-hook 'org-indent-mode)
+  (add-hook 'org-mode-hook 'visual-line-mode)
+#+end_src
+** LaTeX
+I use CDLatex to input LaTeX quickly.
+#+begin_src emacs-lisp
+  (package-install 'cdlatex)
+  (require 'cdlatex)
+#+end_src
+
+I also have a few custom templates for CDLatex.
+#+begin_src emacs-lisp
+  (setq cdlatex-command-alist
+      '(("lap" "Insert Laplace transform" "\\mathcal L {" cdlatex-lr-pair nil nil t)
+           ("ilap" "Insert inverse Laplace transform" "\\mathcal L^{-1} {" cdlatex-lr-pair nil nil t)
+           ("lim" "Insert limit" "\\lim_{?}" cdlatex-position-cursor nil nil t)
+           ("()" "Insert inline math" "\\(?\\)" cdlatex-position-cursor nil t nil)
+           ("hb" "Insert \\hbar" "\\hbar" nil nil nil t)))
+#+end_src
+
+Finally, though this is not directly related to org mode, I have a custom command to insert inline math, bound to C-(. It uses CDLatex to move the cursor back to the center of the parentheses.
+#+begin_src emacs-lisp
+  (defun begin-inline-math ()
+      "Begins an inline math environment with \\(\\).  Requires cdlatex."
+      (interactive)
+      (insert "\\(?\\)")
+      (cdlatex-position-cursor))
+  (add-hook 'org-cdlatex-mode-hook (lambda ()
+                                       (keymap-set org-cdlatex-mode-map "C-(" #'begin-inline-math)))  
+#+end_src
+
+Now we need to ensure that CDLatex is enabled in all org mode buffers.
+#+begin_src emacs-lisp
+  (add-hook 'org-mode-hook #'turn-on-org-cdlatex)
+#+end_src
+
+I’ll also use Auctex for some other LaTeX utilities like syntax highlighting.
+#+begin_src emacs-lisp
+  (package-install 'auctex)
+  (setq TeX-auto-save t)
+  (setq TeX-parse-self t)
+  (setq-default TeX-master nil)
+#+end_src
+
 * The other stuff
 #+begin_src emacs-lisp
   ;; Slurp environment variables from the shell.
@@ -183,21 +352,6 @@ I originally used project.el, but I’ve decided to try projectile instead. I’
       :config
       (exec-path-from-shell-initialize))
 
-
-
-  ;; Completions
-  ;; Vertico for vertical completion for the emacs minibuffer.
-  (use-package vertico
-      :init
-      (vertico-mode))
-
-  ;; Emacs minibuffer configurations.
-  (use-package emacs
-      :custom
-      ;; Hide commands in M-x which do not work in the current mode.  Vertico
-      ;; commands are hidden in normal buffers. This setting is useful beyond
-      ;; Vertico.
-      (read-extended-command-predicate #'command-completion-default-include-p))
 
   ;; A bunch of great search and navigation commands
   (use-package consult
@@ -208,40 +362,6 @@ I originally used project.el, but I’ve decided to try projectile instead. I’
       :config
       (consult-customize consult-theme consult-line consult-line-at-point :preview-key '(:debounce 0.2 any))
       )
-
-  ;; Annotations in the minibuffer, i.e a description of the function next to the name in M-x
-  (use-package marginalia
-      :init
-      (marginalia-mode))
-
-  ;; In buffer completions, think lsp completions
-  (use-package corfu
-      :custom
-      (corfu-auto t)
-      (corfu-cycle t) ;; Enable cycling for `corfu-next/previous'
-      :bind
-      (:map corfu-map
-          ("TAB" . corfu-next)
-          ("C-n" . corfu-next)
-          ([tab] . corfu-next)
-          ("C-p" . corfu-previous)
-          ("S-TAB" . corfu-previous)
-          ([backtab] . corfu-previous)
-          ("ESC" . corfu-quit))
-      :init
-      (global-corfu-mode))
-
-  (setq corfu-auto-delay 0.2
-      corfu-auto-prefix 2)
-
-  ;; Completion style and fuzzy matching
-  (use-package orderless
-      :custom
-      (completion-styles '(orderless basic))
-      (completion-category-defaults nil)
-      (completion-category-overrides '((file (styles partial-completion)))))
-
-
 
   ;; Flycheck
   (use-package flycheck
@@ -269,25 +389,6 @@ I originally used project.el, but I’ve decided to try projectile instead. I’
   (add-to-list 'load-path
       "~/.emacs.d/plugins/yasnippet")
   (require 'yasnippet)
-  ;;CDLatex
-  (require 'cdlatex)
-  (setq cdlatex-command-alist
-      '(("lap" "Insert Laplace transform" "\\mathcal L {" cdlatex-lr-pair nil nil t)
-           ("ilap" "Insert inverse Laplace transform" "\\mathcal L^{-1} {" cdlatex-lr-pair nil nil t)
-           ("lim" "Insert limit" "\\lim_{?}" cdlatex-position-cursor nil nil t)
-           ("()" "Insert inline math" "\\(?\\)" cdlatex-position-cursor nil t nil)
-           ("hb" "Insert \\hbar" "\\hbar" nil nil nil t)))
-
-  (defun begin-inline-math ()
-      "Begins an inline math environment with \\(\\).  Requires cdlatex."
-      (interactive)
-      (insert "\\(?\\)")
-      (cdlatex-position-cursor))
-  (add-hook 'org-cdlatex-mode-hook (lambda ()
-                                       (keymap-set org-cdlatex-mode-map "C-(" #'begin-inline-math)))
-
-
-
 
   ;; Multiple Cursors
   ;; https://github.com/magnars/multiple-cursors.el?tab=readme-ov-file#command-overview
@@ -314,6 +415,8 @@ I originally used project.el, but I’ve decided to try projectile instead. I’
   ;; Avy
   (use-package avy
       :ensure t
+      :config
+      (setq avy-timeout-seconds 0.25)
       :bind (("M-j" . avy-goto-char-timer)))
 
 
@@ -459,11 +562,6 @@ I originally used project.el, but I’ve decided to try projectile instead. I’
   (global-set-key (kbd "C-<wheel-up>") nil)
   (global-set-key (kbd "C-<wheel-down>") nil)
 
-  ;; Auctex
-  (setq TeX-auto-save t)
-  (setq TeX-parse-self t)
-  (setq-default TeX-master nil)
-
   ;; My new commands
   (defun bens-test ()
       (interactive)
@@ -492,10 +590,6 @@ I originally used project.el, but I’ve decided to try projectile instead. I’
           (compile (format "cmake --build %s --target %s && ./%s/src/%s" build-directory target build-directory target)))
       )
 
-  ;; Org Mode
-  (add-hook 'org-mode-hook 'visual-line-mode)
-  (add-hook 'org-mode-hook 'org-indent-mode)
-  (add-hook 'org-mode-hook #'turn-on-org-cdlatex)
   ;; (add-hook 'org-mode-hook
   ;;     (lambda ()
   ;;         (setq-local yas/trigger-key [tab])

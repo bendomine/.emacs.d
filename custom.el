@@ -20,7 +20,7 @@
  '(org-return-follows-link t)
  '(org-support-shift-select t)
  '(package-selected-packages
-	  '(projectile glsl-mode magit cdlatex tree-sitter-langs tree-sitter nerd-icons doom-modeline multiple-cursors centaur-tabs treemacs flycheck doom-themes exec-path-from-shell orderless consult marginalia corfu vertico yasnippet auctex))
+	  '(olivetti org-modern vertico-posframe which-key projectile glsl-mode magit cdlatex tree-sitter-langs tree-sitter nerd-icons doom-modeline multiple-cursors centaur-tabs treemacs flycheck doom-themes exec-path-from-shell orderless consult marginalia corfu vertico yasnippet auctex))
  '(pixel-scroll-mode t)
  '(pixel-scroll-precision-mode nil)
  '(ring-bell-function 'ignore)
