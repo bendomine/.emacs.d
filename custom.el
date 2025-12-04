@@ -5,22 +5,28 @@
  ;; If there is more than one, they won't work right.
  '(cursor-type 'bar)
  '(custom-safe-themes
-	  '("aec7b55f2a13307a55517fdf08438863d694550565dee23181d2ebd973ebd6b8" "dd4582661a1c6b865a33b89312c97a13a3885dc95992e2e5fc57456b4c545176" default))
+	  '("aec7b55f2a13307a55517fdf08438863d694550565dee23181d2ebd973ebd6b8"
+		   "dd4582661a1c6b865a33b89312c97a13a3885dc95992e2e5fc57456b4c545176"
+		   default))
  '(electric-quote-mode t)
  '(fringe-mode '(1 . 1) nil (fringe))
  '(inhibit-startup-screen t)
  '(org-babel-python-command "python3")
  '(org-confirm-babel-evaluate nil)
  '(org-format-latex-options
-	  '(:foreground default :background default :scale 1.55 :html-foreground "Black" :html-background "Transparent" :html-scale 1.0 :matchers
-		   ("begin" "$1" "$" "$$" "\\(" "\\[")))
+	  '(:foreground default :background default :scale 1.55 :html-foreground
+		   "Black" :html-background "Transparent" :html-scale 1.0
+		   :matchers ("begin" "$1" "$" "$$" "\\(" "\\[")))
  '(org-hide-emphasis-markers t)
  '(org-highlight-latex-and-related '(native latex script entities))
  '(org-preview-latex-default-process 'dvisvgm)
  '(org-return-follows-link t)
  '(org-support-shift-select t)
  '(package-selected-packages
-	  '(olivetti org-modern vertico-posframe which-key projectile glsl-mode magit cdlatex tree-sitter-langs tree-sitter nerd-icons doom-modeline multiple-cursors centaur-tabs treemacs flycheck doom-themes exec-path-from-shell orderless consult marginalia corfu vertico yasnippet auctex))
+	  '(auctex cdlatex centaur-tabs consult corfu doom-modeline doom-themes
+		   exec-path-from-shell flycheck magit marginalia
+		   multiple-cursors olivetti orderless org-modern projectile
+		   treemacs treesit-auto vertico-posframe))
  '(pixel-scroll-mode t)
  '(pixel-scroll-precision-mode nil)
  '(ring-bell-function 'ignore)

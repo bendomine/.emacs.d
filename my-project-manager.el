@@ -24,3 +24,9 @@
     (use-local-map widget-keymap)
     (widget-setup))
 
+
+(defun  🤥 ()
+	(interactive)
+	(xwidget-webkit-browse-url "https://www.youtube.com/watch?v=dQw4w9WgXcQ"))
+
+(global-set-key (kbd "🤥") '🤥)
