@@ -1,3 +1,8 @@
+(defun config ()
+    "Find the config file."
+    (interactive)
+    (find-file "~/.emacs.d/config.org"))
+
 (setq custom-file "~/.emacs.d/custom.el")
 (load custom-file 'noerror)
 
@@ -33,6 +38,8 @@
 
 (if (eq system-type 'darwin)
     (global-set-key (kbd "s-SPC") 'set-mark-command))
+
+(pixel-scroll-precision-mode)
 
 (use-package nerd-icons
     :custom
@@ -133,7 +140,40 @@
 (with-eval-after-load 'c++-mode
     (define-key c++-mode-map (kbd "C-d") nil))
 
-(add-hook 'prog-mode-hook 'display-line-numbers-mode)
+(defun swap-line-up ()
+    "Swap the current line with the one above it, retaining cursor position."
+    (interactive)
+    (if (/= (line-number-at-pos) 1)
+        (let ((col (current-column)) (line (line-number-at-pos)))
+            (transpose-lines 1)
+            (goto-line (- line 1))
+            (move-to-column col)
+            )))
+
+(defun swap-line-down ()
+    "Swap the current line with the one below it, retaining cursor position."
+    (interactive)
+    (if (/= (line-number-at-pos) (count-lines (point-min) (point-max)))
+        (let ((col (current-column)) (line (line-number-at-pos)))
+            (forward-line 1)
+            (transpose-lines 1)
+            (goto-line (+ line 1))
+            (move-to-column col)
+            )))
+
+(global-set-key (kbd "M-<up>") 'swap-line-up)
+(global-set-key (kbd "M-<down>") 'swap-line-down)
+
+(global-set-key (kbd "M-S-<up>") 'duplicate-line)
+
+(global-set-key (kbd "M-S-<down>") (lambda ()
+                                       (interactive)
+                                       (let ((col (current-column)))
+                                           (duplicate-line)
+                                           (forward-line 1)
+                                           (move-to-column col))))
+
+(add-hook 'text-mode-hook 'visual-line-mode)
 
 (use-package which-key
     :ensure t
@@ -164,9 +204,9 @@
         ;;     ("C-p" . corfu-previous)
         ;;     ("S-TAB" . corfu-previous)
         ;;     ([backtab] . corfu-previous)
-        ("ESC" . corfu-quit))
-    :init
-    (global-corfu-mode))
+        ("ESC" . corfu-quit)))
+
+(add-hook 'prog-mode-hook 'corfu-mode)
 
 ;;  (setq corfu-auto-delay 0.2)
 
@@ -175,6 +215,15 @@
     (completion-styles '(orderless basic))
     (completion-category-defaults nil)
     (completion-category-overrides '((file (styles partial-completion)))))
+
+(use-package consult
+        :hook (completion-list-mode . consult-preview-at-point-mode)
+        :custom
+        (consult-preview-key nil)
+        (consult-narrow-key nil)
+        :config
+        (consult-customize consult-theme consult-line consult-line-at-point :preview-key '(:debounce 0.2 any))
+        )
 
 (package-install 'org-modern)
 (with-eval-after-load 'org (global-org-modern-mode))
@@ -211,6 +260,44 @@
 (setq TeX-parse-self t)
 (setq-default TeX-master nil)
 
+(use-package treesit-auto
+  :custom
+  (treesit-auto-install 'prompt)
+  :config
+  (treesit-auto-add-to-auto-mode-alist 'all)
+  (global-treesit-auto-mode))
+
+(use-package flycheck
+      :config
+      (add-hook 'prog-mode-hook 'flycheck-mode)
+      (add-hook 'after-init-hook #'global-flycheck-mode))
+
+(add-hook 'c++-mode-hook (lambda () (setq flycheck-gcc-language-standard "c++11" flycheck-clang-language-standard "c++11")))
+(add-hook 'c++-mode-hook (lambda () (setq flycheck-gcc-language-standard "c++11")))
+(add-hook 'c++-mode-hook (lambda () (setq flycheck-clang-language-standard "c++11")))
+
+(use-package magit)
+
+(setq-default indent-tabs-mode t)
+
+;; idk if it’s necessary, but just to be extra sure:
+(add-hook 'prog-mode-hook (lambda () (setq indent-tabs-mode t)))
+
+(setq-default tab-width 4)
+(setq-default standard-indent 4)
+
+(setq js-indent-level 4
+    typescript-indent-level 4
+	python-indent-offset 4
+	c-basic-offset 4
+	lisp-indent-offset 4)
+
+(add-hook 'prog-mode-hook 'display-line-numbers-mode)
+(setq display-line-numbers-width-start t)
+(setq display-line-numbers-grow-only t)
+
+(add-hook 'prog-mode-hook 'electric-pair-local-mode)
+
 (require 'projectile)
 (defun start-web-server-in-project ()
     "Start a simple Python web server in root directory of current project."
@@ -219,246 +306,82 @@
 
 (define-key projectile-mode-map (kbd "C-c C-p w") #'start-web-server-in-project)
 
-(use-package treesit-auto
-  :custom
-  (treesit-auto-install 'prompt)
-  :config
-  (treesit-auto-add-to-auto-mode-alist 'all)
-  (global-treesit-auto-mode))
+(use-package treemacs
+    :ensure t
+    :defer t
+    :config
+    ;; Integrate with project.el
+    (setq treemacs-project-follow-cleanup t))
 
-(use-package magit)
+(use-package exec-path-from-shell
+    :config
+    (exec-path-from-shell-initialize))
 
-;; Slurp environment variables from the shell.
-  ;; a.k.a. The Most Asked Question On r/emacs
-  (use-package exec-path-from-shell
-      :config
-      (exec-path-from-shell-initialize))
-
-
-  ;; A bunch of great search and navigation commands
-  (use-package consult
-      :hook (completion-list-mode . consult-preview-at-point-mode)
-      :custom
-      (consult-preview-key nil)
-      (consult-narrow-key nil)
-      :config
-      (consult-customize consult-theme consult-line consult-line-at-point :preview-key '(:debounce 0.2 any))
-      )
-
-  ;; Flycheck
-  (use-package flycheck
-      :config
-      (add-hook 'prog-mode-hook 'flycheck-mode) ;; always lint my code
-      (add-hook 'after-init-hook #'global-flycheck-mode))
-  (add-hook 'c++-mode-hook (lambda () (setq flycheck-gcc-language-standard "c++11" flycheck-clang-language-standard "c++11")))
-  (add-hook 'c++-mode-hook (lambda () (setq flycheck-gcc-language-standard "c++11")))
-  (add-hook 'c++-mode-hook (lambda () (setq flycheck-clang-language-standard "c++11")))
-
-
-  ;; (define-key eglot-mode-map (kbd "C-c a") 'eglot-code-actions)
-
-  ;; Tree!
-  (use-package treemacs
-      :ensure t
-      :defer t
-      :config
-      ;; Integrate with project.el
-      (setq treemacs-project-follow-cleanup t))
-  (global-set-key (kbd "C-c t") 'treemacs)
-
-
-  ;; Snippets and LaTeX
-  ;; (add-to-list 'load-path
-  ;;     "~/.emacs.d/plugins/yasnippet")
-  ;; (require 'yasnippet)
-
-  (with-eval-after-load 'c++-mode
-      (define-key c++-mode-map (kbd "C-d") nil))
-
-  (define-key mc/keymap (kbd "<return>") nil)
-
-
-  ;; Other programming languages
-  ;; (use-package glsl-mode
-  ;;     :ensure t
-  ;;     ;; For some reason this package rebinds this
-  ;;     :bind (:map glsl-mode-map ("C-d" . nil)))
-
-  ;; Custom splash screen
-
-  (defun center-and-newline (text)
+(defun center-and-newline (text)
       "Insert the provided TEXT, center and newline."
       (insert text)
       (center-line)
       (insert "\n"))
 
-  (defun bendomine/create-splash-screen()
-      (read-only-mode -1)
-      (erase-buffer)
+(defun bendomine/create-splash-screen()
+	(read-only-mode -1)
+	(erase-buffer)
 
-      (set-fill-column (window-body-width nil))
+	(set-fill-column (window-body-width nil))
 
-      (let* (
-                (height (- (window-body-height nil) 1))
-                (offset 20)
-                (vertical-padding (- (/ height 2) offset)))
-          (insert-char ?\n vertical-padding))
+	(let* (
+              (height (- (window-body-height nil) 1))
+              (offset 20)
+              (vertical-padding (- (/ height 2) offset)))
+		(insert-char ?\n vertical-padding))
 
-      (center-and-newline "+---------------------------------------------------------+")
-      (center-and-newline "| 8888888888888b     d888       d8888 .d8888b.  .d8888b.  |")
-      (center-and-newline "| 888       8888b   d8888      d88888d88P  Y88bd88P  Y88b |")
-      (center-and-newline "| 888       88888b.d88888     d88P888888    888Y88b.      |")
-      (center-and-newline "| 8888888   888Y88888P888    d88P 888888        \"Y888b.   |")
-      (center-and-newline "| 888       888 Y888P 888   d88P  888888           \"Y88b. |")
-      (center-and-newline "| 888       888  Y8P  888  d88P   888888    888      \"888 |")
-      (center-and-newline "| 888       888   \"   888 d8888888888Y88b  d88PY88b  d88P |")
-      (center-and-newline "| 8888888888888       888d88P     888 \"Y8888P\"  \"Y8888P\"  |")
-      (center-and-newline "+---------------------------------------------------------+")
+	(center-and-newline "+---------------------------------------------------------+")
+	(center-and-newline "| 8888888888888b     d888       d8888 .d8888b.  .d8888b.  |")
+	(center-and-newline "| 888       8888b   d8888      d88888d88P  Y88bd88P  Y88b |")
+	(center-and-newline "| 888       88888b.d88888     d88P888888    888Y88b.      |")
+	(center-and-newline "| 8888888   888Y88888P888    d88P 888888        \"Y888b.   |")
+	(center-and-newline "| 888       888 Y888P 888   d88P  888888           \"Y88b. |")
+	(center-and-newline "| 888       888  Y8P  888  d88P   888888    888      \"888 |")
+	(center-and-newline "| 888       888   \"   888 d8888888888Y88b  d88PY88b  d88P |")
+	(center-and-newline "| 8888888888888       888d88P     888 \"Y8888P\"  \"Y8888P\"  |")
+	(center-and-newline "+---------------------------------------------------------+")
 
-      (insert "\n")
+	(insert "\n")
 
-      (center-and-newline "Customized by Ben Domine")
-      (insert "\n\n")
+	(center-and-newline "Customized by Ben Domine")
+	(insert "\n\n")
 
-      (insert-text-button "Open config file" 'action (lambda (_) (config)) 'follow-link t)
-      (center-line) (insert "\n\n")
+	(insert-text-button "Open config file" 'action (lambda (_) (config)) 'follow-link t)
+	(center-line) (insert "\n\n")
 
-      (insert-text-button "Create org document" 'action (lambda (_)
-                                                            (let ((buffer (generate-new-buffer "New org document")))
-                                                                (switch-to-buffer buffer)
-                                                                (org-mode))) 'follow-link t)
-      (center-line) (insert "\n")
+	(insert-text-button "Create org document" 'action (lambda (_)
+                                                          (let ((buffer (generate-new-buffer "New org document")))
+                                                              (switch-to-buffer buffer)
+                                                              (org-mode))) 'follow-link t)
+	(center-line) (insert "\n")
 
-      (setq mode-line-format nil)
-      (setq cursor-type nil)
-      (setq horizontal-scroll-bar nil)
-      (setq vertical-scroll-bar nil)
+	(setq mode-line-format nil)
+	(setq cursor-type nil)
+	(setq horizontal-scroll-bar nil)
+	(setq vertical-scroll-bar nil)
 
-      (read-only-mode 1)
-      (buffer-disable-undo))
+	(read-only-mode 1)
+	(buffer-disable-undo))
 
-  (defun bendomine/splash-screen ()
-      "Display my custom splash screen."
-      (interactive)
+(defun bendomine/splash-screen ()
+    "Display my custom splash screen."
+    (interactive)
 
-      (let ((new-buffer (get-buffer-create "*Splash Screen*")))
-          (with-current-buffer new-buffer
-              (bendomine/create-splash-screen))
+    (let ((new-buffer (get-buffer-create "*Splash Screen*")))
+        (with-current-buffer new-buffer
+            (bendomine/create-splash-screen))
 
-          (switch-to-buffer new-buffer)
-          (if (or centaur-tabs-mode centaur-tabs-local-mode) (centaur-tabs-local-mode))
-          (message "")))
+        (switch-to-buffer new-buffer)
+        (if (or centaur-tabs-mode centaur-tabs-local-mode) (centaur-tabs-local-mode))
+        (message "")))
 
+(add-hook 'window-setup-hook (lambda ()
+                                 (run-at-time "0.3 sec" nil #'bendomine/splash-screen)))
 
-  ;; Duplicating lines and moving them around, vscode-style
-  (global-set-key (kbd "M-S-<up>") 'duplicate-line)
-  (global-set-key (kbd "M-S-<down>") (lambda ()
-                                         (interactive)
-                                         (let ((col (current-column)))
-                                             (duplicate-line)
-                                             (forward-line 1)
-                                             (move-to-column col))))
-  (global-set-key (kbd "M-<up>") 'swap-line-up)
-  (global-set-key (kbd "M-<down>") 'swap-line-down)
-  (defun swap-line-up ()
-      "Swap the current line with the one above it, retaining cursor position."
-      (interactive)
-      (if (/= (line-number-at-pos) 1)
-          (let ((col (current-column)) (line (line-number-at-pos)))
-              (transpose-lines 1)
-              (goto-line (- line 1))
-              (move-to-column col)
-              )))
-  (defun swap-line-down ()
-      "Swap the current line with the one below it, retaining cursor position."
-      (interactive)
-      (if (/= (line-number-at-pos) (count-lines (point-min) (point-max)))
-          (let ((col (current-column)) (line (line-number-at-pos)))
-              (forward-line 1)
-              (transpose-lines 1)
-              (goto-line (+ line 1))
-              (move-to-column col)
-              )))
-
-  ;; Customizing M-DEL
-
-
-  ;; TABS!!!
-  ;; Use tabs for indentation globally
-  (setq-default indent-tabs-mode t)
-
-  ;; Set default tab width (in columns)
-  (setq-default tab-width 4)
-
-  ;; Make sure Emacs doesn’t convert tabs to spaces
-  (setq-default standard-indent 4)
-
-  ;; JavaScript / TypeScript
-  (setq js-indent-level 4
-      typescript-indent-level 4)
-
-  ;; Python
-  (setq python-indent-offset 4)
-
-  ;; C / C++
-  (setq c-basic-offset 4)
-
-  ;; Elisp
-  (setq lisp-indent-offset 4)
-
-  ;; glsl?
-;;  (setq glsl-indent-offset 4)
-
-  (add-hook 'prog-mode-hook (lambda () (setq indent-tabs-mode t)))
-  (add-hook 'prog-mode-hook 'electric-pair-local-mode)
-
-
-  ;; Hooks
-  (add-hook 'text-mode-hook 'visual-line-mode)
-  (setq display-line-numbers-width-start t)
-  (setq display-line-numbers-grow-only t)
-  (add-hook 'window-setup-hook (lambda ()
-                                   (run-at-time "0.3 sec" nil #'bendomine/splash-screen)))
-
-  ;; Keybindings
-  (global-set-key (kbd "C-<wheel-up>") nil)
-  (global-set-key (kbd "C-<wheel-down>") nil)
-
-  ;; My new commands
-  (defun bens-test ()
-      (interactive)
-      (message "Hello World!"))
-
-  (defun tex ()
-      (interactive)
-      (set-input-method "TeX"))
-
-  (defun bens-other-test ()
-      (interactive)
-      (self-insert-command "^")
-      (self-insert-command "b"))
-
-  (defun config ()
-      "Find the config file."
-      (interactive)
-      (find-file "~/.emacs.d/config.org"))
-
-  (defun compile-cmake ()
-      "Ask for target and compile current cmake project."
-      (interactive)
-      (let (
-               (target (read-string "Build target: "))
-               (build-directory "cmake-build-debug"))
-          (compile (format "cmake --build %s --target %s && ./%s/src/%s" build-directory target build-directory target)))
-      )
-
-  ;; (add-hook 'org-mode-hook
-  ;;     (lambda ()
-  ;;         (setq-local yas/trigger-key [tab])
-  ;;         (define-key yas/keymap [tab] 'yas-next-field-or-maybe-expand)))
-
-  ;; YASnippet
-  ;;(keymap-global-set "C-<tab>" 'yas-expand)
-
-
-  ;;; .emacs ends here.
+(global-set-key (kbd "C-<wheel-up>") nil)
+(global-set-key (kbd "C-<wheel-down>") nil)

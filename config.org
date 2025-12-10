@@ -4,6 +4,15 @@
 #+startup: overview
 
 * Early Initialization
+** Config File Shortcut
+Because of how frequently I visit this file, I want a function to quickly find it. I want this to be the very first thing I do, so that if something breaks this function still ends up loading whenever possible.
+#+begin_src emacs-lisp
+  (defun config ()
+      "Find the config file."
+      (interactive)
+      (find-file "~/.emacs.d/config.org"))
+#+end_src
+
 ** Other Config Files
 Store customize code in a different file:
 #+begin_src emacs-lisp
@@ -15,7 +24,6 @@ Packages I’m currently developing will be in different files; load them also:
 #+begin_src emacs-lisp
   (load "~/.emacs.d/my-project-manager.el")
 #+end_src
-
 ** Basic GUI Tweaks
 First GUI customizations. We want fullscreen, no tool bar, and a dark frame:
 #+begin_src emacs-lisp
@@ -76,6 +84,12 @@ This means that I need to resolve the keyboard conflicts that arise from mac tak
 #+end_src
 
 * UI
+** Scrolling
+I want precision pixel scrolling, meaning that when I use the scroll wheel I want smooth scrolling instead of line-by-line scrolling. This obviously only has an impact in GUI mode. Also, it can cause lag depending on the machine and version/port of emacs!
+#+begin_src emacs-lisp
+  (pixel-scroll-precision-mode)
+#+end_src
+
 ** Icons
 I’m using nerd-icons for doom-modeline and other icon-requiring packages.
 #+begin_src emacs-lisp
@@ -86,7 +100,6 @@ I’m using nerd-icons for doom-modeline and other icon-requiring packages.
 #+end_src
 
 Note: if this doesn’t work on a new computer, run nerd-icons-install-fonts.
-
 ** Themes
 I’ll use doom-themes because of its broad selection. Screenshots of some of these themes can be found [[https://github.com/doomemacs/themes/tree/screenshots][here]].
 
@@ -272,13 +285,58 @@ Finally, the c++ mode keymap eats C-d. It would be better practice to bind it to
   (with-eval-after-load 'c++-mode
       (define-key c++-mode-map (kbd "C-d") nil))
 #+end_src
-** Line Numbers
-I want line numbers when programming.
+** Moving Lines
+This is a feature from VSCode that I quite like. The idea is to move lines around with M-up and M-down, and also to duplicate lines up and down with M-S-up and M-S-down.
+
+Let’s start with swapping lines up and down:
 #+begin_src emacs-lisp
-  (add-hook 'prog-mode-hook 'display-line-numbers-mode)
+  (defun swap-line-up ()
+      "Swap the current line with the one above it, retaining cursor position."
+      (interactive)
+      (if (/= (line-number-at-pos) 1)
+          (let ((col (current-column)) (line (line-number-at-pos)))
+              (transpose-lines 1)
+              (goto-line (- line 1))
+              (move-to-column col)
+              )))
+  
+  (defun swap-line-down ()
+      "Swap the current line with the one below it, retaining cursor position."
+      (interactive)
+      (if (/= (line-number-at-pos) (count-lines (point-min) (point-max)))
+          (let ((col (current-column)) (line (line-number-at-pos)))
+              (forward-line 1)
+              (transpose-lines 1)
+              (goto-line (+ line 1))
+              (move-to-column col)
+              )))
 #+end_src
 
-I also prefer the current line number to be highlighted a little more strongly than it is by default, so I’ll customize the face:
+We then bind these to keys:
+#+begin_src emacs-lisp
+    (global-set-key (kbd "M-<up>") 'swap-line-up)
+    (global-set-key (kbd "M-<down>") 'swap-line-down)
+#+end_src
+
+Duplicating up is very straightforward:
+#+begin_src emacs-lisp
+  (global-set-key (kbd "M-S-<up>") 'duplicate-line)  
+#+end_src
+
+Finally, duplicating down:
+#+begin_src emacs-lisp
+  (global-set-key (kbd "M-S-<down>") (lambda ()
+                                         (interactive)
+                                         (let ((col (current-column)))
+                                             (duplicate-line)
+                                             (forward-line 1)
+                                             (move-to-column col))))
+#+end_src
+** Visual Line Mode
+I want visual line mode enabled in text modes:
+#+begin_src emacs-lisp
+  (add-hook 'text-mode-hook 'visual-line-mode)
+#+end_src
 
 * Completions and Search
 ** Keybinding Completion
@@ -325,9 +383,12 @@ As far as I can tell, there are two primary options for in-buffer completion: co
           ;;     ("C-p" . corfu-previous)
           ;;     ("S-TAB" . corfu-previous)
           ;;     ([backtab] . corfu-previous)
-          ("ESC" . corfu-quit))
-      :init
-      (global-corfu-mode))
+          ("ESC" . corfu-quit)))
+#+end_src
+
+I want completion in programming buffers:
+#+begin_src emacs-lisp
+  (add-hook 'prog-mode-hook 'corfu-mode)
 #+end_src
 
 I also want to delay the completion a little bit, instead of it popping up immediately. I have this code set up to add a time delay of 0.2 seconds; however, the corfu documentation states that this can create lag, so I’ve commented it out for now.
@@ -342,6 +403,18 @@ I use orderless to give completions fuzzy matching. This particular bit of code 
       (completion-styles '(orderless basic))
       (completion-category-defaults nil)
       (completion-category-overrides '((file (styles partial-completion)))))
+#+end_src
+** Searching
+I’ll use Consult for better searching. When I say "use" I don’t actually mean use, because I haven’t figured it out yet. However, I’ll install it for now.
+#+begin_src emacs-lisp
+(use-package consult
+        :hook (completion-list-mode . consult-preview-at-point-mode)
+        :custom
+        (consult-preview-key nil)
+        (consult-narrow-key nil)
+        :config
+        (consult-customize consult-theme consult-line consult-line-at-point :preview-key '(:debounce 0.2 any))
+        )
 #+end_src
 
 * Org Mode
@@ -405,6 +478,79 @@ I’ll also use Auctex for some other LaTeX utilities like syntax highlighting.
   (setq-default TeX-master nil)
 #+end_src
 
+* Programming
+** Syntax Highlighting
+I’ll use tree-sitter for syntax highlighting. Tree-sitter is included with Emacs, but in order to use it in every compatible buffer I’ll use treesit-auto:
+#+begin_src emacs-lisp
+  (use-package treesit-auto
+    :custom
+    (treesit-auto-install 'prompt)
+    :config
+    (treesit-auto-add-to-auto-mode-alist 'all)
+    (global-treesit-auto-mode))
+#+end_src
+** Linting
+I’ll use flycheck for syntax linting.
+#+begin_src emacs-lisp
+  (use-package flycheck
+        :config
+        (add-hook 'prog-mode-hook 'flycheck-mode)
+        (add-hook 'after-init-hook #'global-flycheck-mode))
+#+end_src
+
+One issue I’ve found is flycheck using old c++ language standards. This is an attempt to set them to 2011:
+#+begin_src emacs-lisp
+  (add-hook 'c++-mode-hook (lambda () (setq flycheck-gcc-language-standard "c++11" flycheck-clang-language-standard "c++11")))
+  (add-hook 'c++-mode-hook (lambda () (setq flycheck-gcc-language-standard "c++11")))
+  (add-hook 'c++-mode-hook (lambda () (setq flycheck-clang-language-standard "c++11")))
+#+end_src
+Unfortunately, I don’t think it’s a successful attempt.
+
+** Version Control
+For help with version control, I’ll use magit. I currently don’t have this customized at all.
+#+begin_src emacs-lisp
+  (use-package magit)
+#+end_src
+
+** Indentation
+I’m a proud tabs user. We want to use tabs whenever possible:
+#+begin_src emacs-lisp
+  (setq-default indent-tabs-mode t)
+
+  ;; idk if it’s necessary, but just to be extra sure:
+  (add-hook 'prog-mode-hook (lambda () (setq indent-tabs-mode t)))
+#+end_src
+
+I want a tab size of 4:
+#+begin_src emacs-lisp
+  (setq-default tab-width 4)
+  (setq-default standard-indent 4)
+#+end_src
+
+And I want to use tabs for every mode:
+#+begin_src emacs-lisp
+  (setq js-indent-level 4
+      typescript-indent-level 4
+  	python-indent-offset 4
+  	c-basic-offset 4
+  	lisp-indent-offset 4)
+#+end_src
+
+** Line numbers
+I want line numbers when programming. The last two lines here make sure the line number bar takes up a constant amount of space, preventing weird shifts when scrolling.
+#+begin_src emacs-lisp
+  (add-hook 'prog-mode-hook 'display-line-numbers-mode)
+  (setq display-line-numbers-width-start t)
+  (setq display-line-numbers-grow-only t)
+
+#+end_src
+
+** Electric Pair Mode
+I want electric pair mode enabled whenever I’m programming, but only then:
+#+begin_src emacs-lisp
+  (add-hook 'prog-mode-hook 'electric-pair-local-mode)
+#+end_src
+
 * Projects
 ** Web Server
 I often want to start a server to preview a web project. I’ll use a custom function to do this, using projectile. I’ve bound this to C-c C-p w, which is the projectile prefix + w.
@@ -417,264 +563,106 @@ I often want to start a server to preview a web project. I’ll use a custom fun
 
   (define-key projectile-mode-map (kbd "C-c C-p w") #'start-web-server-in-project)
 #+end_src
-
-* Programming
-** Syntax Highlighting
-I’ll use tree-sitter for syntax highlighting. Tree-sitter is included with Emacs, but in order to use it in every compatible buffer I’ll use treesit-auto:
+** Treemacs
+Treemacs is a package which creates a buffer displaying the file structure of the current project.
 #+begin_src emacs-lisp
-  (use-package treesit-auto
-    :custom
-    (treesit-auto-install 'prompt)
-    :config
-    (treesit-auto-add-to-auto-mode-alist 'all)
-    (global-treesit-auto-mode))
-#+end_src
-** Version Control
-For help with version control, I’ll use magit. I currently don’t have this customized at all.
-#+begin_src emacs-lisp
-  (use-package magit)
+  (use-package treemacs
+      :ensure t
+      :defer t
+      :config
+      ;; Integrate with project.el
+      (setq treemacs-project-follow-cleanup t))
 #+end_src
 
-* The other stuff
+* Miscellaneous
+** Exec Path from Shell
+This one has come highly recommended; env variables should be grabbed from the shell.
 #+begin_src emacs-lisp
-    ;; Slurp environment variables from the shell.
-    ;; a.k.a. The Most Asked Question On r/emacs
-    (use-package exec-path-from-shell
-        :config
-        (exec-path-from-shell-initialize))
-
-
-    ;; A bunch of great search and navigation commands
-    (use-package consult
-        :hook (completion-list-mode . consult-preview-at-point-mode)
-        :custom
-        (consult-preview-key nil)
-        (consult-narrow-key nil)
-        :config
-        (consult-customize consult-theme consult-line consult-line-at-point :preview-key '(:debounce 0.2 any))
-        )
-
-    ;; Flycheck
-    (use-package flycheck
-        :config
-        (add-hook 'prog-mode-hook 'flycheck-mode) ;; always lint my code
-        (add-hook 'after-init-hook #'global-flycheck-mode))
-    (add-hook 'c++-mode-hook (lambda () (setq flycheck-gcc-language-standard "c++11" flycheck-clang-language-standard "c++11")))
-    (add-hook 'c++-mode-hook (lambda () (setq flycheck-gcc-language-standard "c++11")))
-    (add-hook 'c++-mode-hook (lambda () (setq flycheck-clang-language-standard "c++11")))
-
-
-    ;; (define-key eglot-mode-map (kbd "C-c a") 'eglot-code-actions)
-
-    ;; Tree!
-    (use-package treemacs
-        :ensure t
-        :defer t
-        :config
-        ;; Integrate with project.el
-        (setq treemacs-project-follow-cleanup t))
-    (global-set-key (kbd "C-c t") 'treemacs)
-
-
-    ;; Snippets and LaTeX
-    ;; (add-to-list 'load-path
-    ;;     "~/.emacs.d/plugins/yasnippet")
-    ;; (require 'yasnippet)
-
-    (with-eval-after-load 'c++-mode
-        (define-key c++-mode-map (kbd "C-d") nil))
-
-    (define-key mc/keymap (kbd "<return>") nil)
-
-
-    ;; Other programming languages
-    ;; (use-package glsl-mode
-    ;;     :ensure t
-    ;;     ;; For some reason this package rebinds this
-    ;;     :bind (:map glsl-mode-map ("C-d" . nil)))
-
-    ;; Custom splash screen
-
-    (defun center-and-newline (text)
+  (use-package exec-path-from-shell
+      :config
+      (exec-path-from-shell-initialize))
+#+end_src
+** Splash Screen
+This is my custom splash screen. I’ll begin by defining a function for convenience. This inserts some text, centers it in the buffer, and then adds a newline.
+#+begin_src emacs-lisp
+  (defun center-and-newline (text)
         "Insert the provided TEXT, center and newline."
         (insert text)
         (center-line)
         (insert "\n"))
-
-    (defun bendomine/create-splash-screen()
-        (read-only-mode -1)
-        (erase-buffer)
-
-        (set-fill-column (window-body-width nil))
-
-        (let* (
-                  (height (- (window-body-height nil) 1))
-                  (offset 20)
-                  (vertical-padding (- (/ height 2) offset)))
-            (insert-char ?\n vertical-padding))
-
-        (center-and-newline "+---------------------------------------------------------+")
-        (center-and-newline "| 8888888888888b     d888       d8888 .d8888b.  .d8888b.  |")
-        (center-and-newline "| 888       8888b   d8888      d88888d88P  Y88bd88P  Y88b |")
-        (center-and-newline "| 888       88888b.d88888     d88P888888    888Y88b.      |")
-        (center-and-newline "| 8888888   888Y88888P888    d88P 888888        \"Y888b.   |")
-        (center-and-newline "| 888       888 Y888P 888   d88P  888888           \"Y88b. |")
-        (center-and-newline "| 888       888  Y8P  888  d88P   888888    888      \"888 |")
-        (center-and-newline "| 888       888   \"   888 d8888888888Y88b  d88PY88b  d88P |")
-        (center-and-newline "| 8888888888888       888d88P     888 \"Y8888P\"  \"Y8888P\"  |")
-        (center-and-newline "+---------------------------------------------------------+")
-
-        (insert "\n")
-
-        (center-and-newline "Customized by Ben Domine")
-        (insert "\n\n")
-
-        (insert-text-button "Open config file" 'action (lambda (_) (config)) 'follow-link t)
-        (center-line) (insert "\n\n")
-
-        (insert-text-button "Create org document" 'action (lambda (_)
-                                                              (let ((buffer (generate-new-buffer "New org document")))
-                                                                  (switch-to-buffer buffer)
-                                                                  (org-mode))) 'follow-link t)
-        (center-line) (insert "\n")
-
-        (setq mode-line-format nil)
-        (setq cursor-type nil)
-        (setq horizontal-scroll-bar nil)
-        (setq vertical-scroll-bar nil)
-
-        (read-only-mode 1)
-        (buffer-disable-undo))
-
-    (defun bendomine/splash-screen ()
-        "Display my custom splash screen."
-        (interactive)
-
-        (let ((new-buffer (get-buffer-create "*Splash Screen*")))
-            (with-current-buffer new-buffer
-                (bendomine/create-splash-screen))
-
-            (switch-to-buffer new-buffer)
-            (if (or centaur-tabs-mode centaur-tabs-local-mode) (centaur-tabs-local-mode))
-            (message "")))
-
-
-    ;; Duplicating lines and moving them around, vscode-style
-    (global-set-key (kbd "M-S-<up>") 'duplicate-line)
-    (global-set-key (kbd "M-S-<down>") (lambda ()
-                                           (interactive)
-                                           (let ((col (current-column)))
-                                               (duplicate-line)
-                                               (forward-line 1)
-                                               (move-to-column col))))
-    (global-set-key (kbd "M-<up>") 'swap-line-up)
-    (global-set-key (kbd "M-<down>") 'swap-line-down)
-    (defun swap-line-up ()
-        "Swap the current line with the one above it, retaining cursor position."
-        (interactive)
-        (if (/= (line-number-at-pos) 1)
-            (let ((col (current-column)) (line (line-number-at-pos)))
-                (transpose-lines 1)
-                (goto-line (- line 1))
-                (move-to-column col)
-                )))
-    (defun swap-line-down ()
-        "Swap the current line with the one below it, retaining cursor position."
-        (interactive)
-        (if (/= (line-number-at-pos) (count-lines (point-min) (point-max)))
-            (let ((col (current-column)) (line (line-number-at-pos)))
-                (forward-line 1)
-                (transpose-lines 1)
-                (goto-line (+ line 1))
-                (move-to-column col)
-                )))
-
-    ;; Customizing M-DEL
-
-
-    ;; TABS!!!
-    ;; Use tabs for indentation globally
-    (setq-default indent-tabs-mode t)
-
-    ;; Set default tab width (in columns)
-    (setq-default tab-width 4)
-
-    ;; Make sure Emacs doesn’t convert tabs to spaces
-    (setq-default standard-indent 4)
-
-    ;; JavaScript / TypeScript
-    (setq js-indent-level 4
-        typescript-indent-level 4)
-
-    ;; Python
-    (setq python-indent-offset 4)
-
-    ;; C / C++
-    (setq c-basic-offset 4)
-
-    ;; Elisp
-    (setq lisp-indent-offset 4)
-
-    ;; glsl?
-  ;;  (setq glsl-indent-offset 4)
-
-    (add-hook 'prog-mode-hook (lambda () (setq indent-tabs-mode t)))
-    (add-hook 'prog-mode-hook 'electric-pair-local-mode)
-
-
-    ;; Hooks
-    (add-hook 'text-mode-hook 'visual-line-mode)
-    (setq display-line-numbers-width-start t)
-    (setq display-line-numbers-grow-only t)
-    (add-hook 'window-setup-hook (lambda ()
-                                     (run-at-time "0.3 sec" nil #'bendomine/splash-screen)))
-
-    ;; Keybindings
-    (global-set-key (kbd "C-<wheel-up>") nil)
-    (global-set-key (kbd "C-<wheel-down>") nil)
-
-    ;; My new commands
-    (defun bens-test ()
-        (interactive)
-        (message "Hello World!"))
-
-    (defun tex ()
-        (interactive)
-        (set-input-method "TeX"))
-
-    (defun bens-other-test ()
-        (interactive)
-        (self-insert-command "^")
-        (self-insert-command "b"))
-
-    (defun config ()
-        "Find the config file."
-        (interactive)
-        (find-file "~/.emacs.d/config.org"))
-
-    (defun compile-cmake ()
-        "Ask for target and compile current cmake project."
-        (interactive)
-        (let (
-                 (target (read-string "Build target: "))
-                 (build-directory "cmake-build-debug"))
-            (compile (format "cmake --build %s --target %s && ./%s/src/%s" build-directory target build-directory target)))
-        )
-
-    ;; (add-hook 'org-mode-hook
-    ;;     (lambda ()
-    ;;         (setq-local yas/trigger-key [tab])
-    ;;         (define-key yas/keymap [tab] 'yas-next-field-or-maybe-expand)))
-
-    ;; YASnippet
-    ;;(keymap-global-set "C-<tab>" 'yas-expand)
-
-
-    ;;; .emacs ends here.
-
-
-
 #+end_src
 
-#+RESULTS:
-: [nil 0 100 0 t zone nil idle 0 nil]
+Next, I’ll have a function for turning a given buffer into the splash screen:
+#+begin_src emacs-lisp
+  (defun bendomine/create-splash-screen()
+  	(read-only-mode -1)
+  	(erase-buffer)
+
+  	(set-fill-column (window-body-width nil))
+
+  	(let* (
+                (height (- (window-body-height nil) 1))
+                (offset 20)
+                (vertical-padding (- (/ height 2) offset)))
+  		(insert-char ?\n vertical-padding))
+
+  	(center-and-newline "+---------------------------------------------------------+")
+  	(center-and-newline "| 8888888888888b     d888       d8888 .d8888b.  .d8888b.  |")
+  	(center-and-newline "| 888       8888b   d8888      d88888d88P  Y88bd88P  Y88b |")
+  	(center-and-newline "| 888       88888b.d88888     d88P888888    888Y88b.      |")
+  	(center-and-newline "| 8888888   888Y88888P888    d88P 888888        \"Y888b.   |")
+  	(center-and-newline "| 888       888 Y888P 888   d88P  888888           \"Y88b. |")
+  	(center-and-newline "| 888       888  Y8P  888  d88P   888888    888      \"888 |")
+  	(center-and-newline "| 888       888   \"   888 d8888888888Y88b  d88PY88b  d88P |")
+  	(center-and-newline "| 8888888888888       888d88P     888 \"Y8888P\"  \"Y8888P\"  |")
+  	(center-and-newline "+---------------------------------------------------------+")
+
+  	(insert "\n")
+
+  	(center-and-newline "Customized by Ben Domine")
+  	(insert "\n\n")
+
+  	(insert-text-button "Open config file" 'action (lambda (_) (config)) 'follow-link t)
+  	(center-line) (insert "\n\n")
+
+  	(insert-text-button "Create org document" 'action (lambda (_)
+                                                            (let ((buffer (generate-new-buffer "New org document")))
+                                                                (switch-to-buffer buffer)
+                                                                (org-mode))) 'follow-link t)
+  	(center-line) (insert "\n")
+
+  	(setq mode-line-format nil)
+  	(setq cursor-type nil)
+  	(setq horizontal-scroll-bar nil)
+  	(setq vertical-scroll-bar nil)
+
+  	(read-only-mode 1)
+  	(buffer-disable-undo))
+#+end_src
+
+Now I have a function to create a buffer and run the previous command:
+#+begin_src emacs-lisp
+  (defun bendomine/splash-screen ()
+      "Display my custom splash screen."
+      (interactive)
+
+      (let ((new-buffer (get-buffer-create "*Splash Screen*")))
+          (with-current-buffer new-buffer
+              (bendomine/create-splash-screen))
+
+          (switch-to-buffer new-buffer)
+          (if (or centaur-tabs-mode centaur-tabs-local-mode) (centaur-tabs-local-mode))
+          (message "")))
+#+end_src
+
+Finally, I’ll display that splash screen after load, with a tiny delay to ensure that the frame resizes first:
+#+begin_src emacs-lisp
+  (add-hook 'window-setup-hook (lambda ()
+                                   (run-at-time "0.3 sec" nil #'bendomine/splash-screen)))
+#+end_src
+** Preventing Messages on C-scroll
+This is kind of stupid, but I sometimes have the C modifier key held down when scrolling, and I don’t want that to be special behavior:
+#+begin_src emacs-lisp
+  (global-set-key (kbd "C-<wheel-up>") nil)
+  (global-set-key (kbd "C-<wheel-down>") nil)
+#+end_src

@@ -27,9 +27,7 @@
 		   exec-path-from-shell flycheck magit marginalia
 		   multiple-cursors olivetti orderless org-modern projectile
 		   treemacs treesit-auto vertico-posframe))
- '(pixel-scroll-mode t)
- '(pixel-scroll-precision-mode nil)
- '(ring-bell-function 'ignore)
+   '(ring-bell-function 'ignore)
  '(scroll-bar-mode nil)
  '(send-mail-function 'mailclient-send-it)
  '(tab-bar-new-tab-choice "*Splash Screen*"))
