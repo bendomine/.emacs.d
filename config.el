@@ -319,21 +319,26 @@
 	:init-value nil
 	(if writing-mode
 		(progn
+			(if (member "Domine" (font-family-list))
+				(setq-local writing--family "Domine")
+				(setq-local writing--family "Times New Roman"))
 			(setq-local face-remapping-alist
-				'((default
+				`((default
 					  :background "#ffffff"
 					  :foreground "#000000"
-					  :family "Times New Roman"
+					  :family ,writing--family
 					  :height 140)))
-			(setq-local face-remapping-alist
-				(append face-remapping-alist
-					 '((mode-line (:height 1))
-					 (mode-line-inactive (:height 1)))))
+			;; (setq-local face-remapping-alist
+			;; 	(append face-remapping-alist
+			;; 		 '((mode-line (:height 1))
+			;; 		 (mode-line-inactive (:height 1)))))
 			(olivetti-mode 1)
+			(line-number-mode -1)
 			(setq-local writing--mode-line-format mode-line-format)
 			(setq-local mode-line-format nil)
-			(when (bound-and-true-p centaur-tabs-local-mode)
-				(setq-local centaur-tabs-local-mode -1)))
+			(when (bound-and-true-p centaur-tabs-mode)
+				(centaur-tabs-local-mode)
+				(message "toggled")))
 		(buffer-face-mode -1)
 		(kill-local-variable 'face-remapping-alist)
 		(olivetti-mode -1)
