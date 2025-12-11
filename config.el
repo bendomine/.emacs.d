@@ -313,6 +313,32 @@
     ;; Integrate with project.el
     (setq treemacs-project-follow-cleanup t))
 
+(define-minor-mode writing-mode
+	"Minor mode for writing text in a distraction-free environment."
+	:lighter "Writing"
+	:init-value nil
+	(if writing-mode
+		(progn
+			(setq-local face-remapping-alist
+				'((default
+					  :background "#ffffff"
+					  :foreground "#000000"
+					  :family "Times New Roman"
+					  :height 140)))
+			(setq-local face-remapping-alist
+				(append face-remapping-alist
+					 '((mode-line (:height 1))
+					 (mode-line-inactive (:height 1)))))
+			(olivetti-mode 1)
+			(setq-local writing--mode-line-format mode-line-format)
+			(setq-local mode-line-format nil)
+			(when (bound-and-true-p centaur-tabs-local-mode)
+				(setq-local centaur-tabs-local-mode -1)))
+		(buffer-face-mode -1)
+		(kill-local-variable 'face-remapping-alist)
+		(olivetti-mode -1)
+		(setq-local mode-line-format writing--mode-line-format)))
+
 (use-package exec-path-from-shell
     :config
     (exec-path-from-shell-initialize))

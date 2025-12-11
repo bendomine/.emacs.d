@@ -574,6 +574,42 @@ Treemacs is a package which creates a buffer displaying the file structure of th
       (setq treemacs-project-follow-cleanup t))
 #+end_src
 
+* Writing
+** Minor Mode
+I want to have a minor mode for writing text in emacs. This minor mode should override much of my customization; I want to use a variable-pitch font, enable Olivetti, and change the color theme to have black text on a white background.
+#+begin_src emacs-lisp
+  (define-minor-mode writing-mode
+  	"Minor mode for writing text in a distraction-free environment."
+  	:lighter "Writing"
+  	:init-value nil
+  	(if writing-mode
+  		(progn
+  			(setq-local face-remapping-alist
+  				'((default
+  					  :background "#ffffff"
+  					  :foreground "#000000"
+  					  :family "Times New Roman"
+  					  :height 140)))
+  			;; (setq-local face-remapping-alist
+  			;; 	(append face-remapping-alist
+  			;; 		 '((mode-line (:height 1))
+  			;; 		 (mode-line-inactive (:height 1)))))
+  			(olivetti-mode 1)
+  			(setq-local writing--mode-line-format mode-line-format)
+  			(setq-local mode-line-format nil)
+  			(when (bound-and-true-p centaur-tabs-local-mode)
+  				(setq-local centaur-tabs-local-mode -1))
+  			(when (bound-and-true-p centaur-tabs-mode)
+  				(setq-local writing--disabled-centaur-tabs t)
+  				(centaur-tabs-mode -1)))
+  		(buffer-face-mode -1)
+  		(kill-local-variable 'face-remapping-alist)
+  		(olivetti-mode -1)
+  		(setq-local mode-line-format writing--mode-line-format)
+  		(when (bound-and-true-p writing--disabled-centaur-tabs)
+  			(centaur-tabs-mode t))))
+#+end_src
+
 * Miscellaneous
 ** Exec Path from Shell
 This one has come highly recommended; env variables should be grabbed from the shell.
