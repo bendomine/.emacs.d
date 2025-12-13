@@ -5,8 +5,7 @@
  ;; If there is more than one, they won't work right.
  '(cursor-type 'bar)
  '(custom-safe-themes
-	  '("aec7b55f2a13307a55517fdf08438863d694550565dee23181d2ebd973ebd6b8"
-		   "dd4582661a1c6b865a33b89312c97a13a3885dc95992e2e5fc57456b4c545176"
+	  '("dd4582661a1c6b865a33b89312c97a13a3885dc95992e2e5fc57456b4c545176"
 		   default))
  '(electric-quote-mode t)
  '(fringe-mode '(1 . 1) nil (fringe))
@@ -24,10 +23,11 @@
  '(org-support-shift-select t)
  '(package-selected-packages
 	  '(auctex cdlatex centaur-tabs consult corfu doom-modeline doom-themes
-		   exec-path-from-shell flycheck magit marginalia
-		   multiple-cursors olivetti orderless org-modern projectile
-		   treemacs treesit-auto vertico-posframe))
-   '(ring-bell-function 'ignore)
+		   exec-path-from-shell flycheck lsp-mode lsp-treemacs lsp-ui
+		   magit marginalia multiple-cursors olivetti orderless
+		   org-modern projectile treemacs treemacs-projectile
+		   treesit-auto vertico-posframe))
+ '(ring-bell-function 'ignore)
  '(scroll-bar-mode nil)
  '(send-mail-function 'mailclient-send-it)
  '(tab-bar-new-tab-choice "*Splash Screen*"))

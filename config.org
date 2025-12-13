@@ -479,6 +479,44 @@ I’ll also use Auctex for some other LaTeX utilities like syntax highlighting.
 #+end_src
 
 * Programming
+** Language Server Protocol Client
+I previously used the built-in Eglot for language server protocol support, but it’s been too slow for my purposes. I’m therefore switching to the lsp-mode package. Documentation for this package can be found [[https://emacs-lsp.github.io/lsp-mode/][here]].
+#+begin_src emacs-lisp
+  (use-package lsp-mode
+  	:init
+  	(setq lsp-keymap-prefix "C-c l")
+  	:hook (
+  			  (python-mode . lsp)
+  			  (javascript-mode . lsp)
+  			  (lsp-mode . lsp-enable-which-key-integration))
+  	:commands lsp)
+#+end_src
+
+I also want the ui integrations of lsp-mode, which adds nice features like sideline, peek, and documentation.
+#+begin_src emacs-lisp
+  (use-package lsp-ui :commands lsp-ui-mode)
+#+end_src
+
+The website also recommends adding the lsp-mode folders to the load path:
+#+begin_src emacs-lisp
+  (add-to-list 'load-path (expand-file-name "lib/lsp-mode" user-emacs-directory))
+  (add-to-list 'load-path (expand-file-name "lib/lsp-mode/clients" user-emacs-directory))
+#+end_src
+
+I want to use Treemacs with lsp-mode:
+#+begin_src emacs-lisp
+  (use-package lsp-treemacs :commands lsp-treemacs-errors-list)
+  (require 'lsp-treemacs)
+  (lsp-treemacs-sync-mode 1)
+#+end_src
+
+** Language Servers
+For c++, I want to use clangd. I’m going to assume this is already installed via homebrew on mac:
+#+begin_src emacs-lisp
+  ;; (if (eq system-type 'darwin)
+  ;; 	(setq lsp-clients-clangd-executable "/opt/homebrew/bin/clangd"))
+#+end_src
+
 ** Syntax Highlighting
 I’ll use tree-sitter for syntax highlighting. Tree-sitter is included with Emacs, but in order to use it in every compatible buffer I’ll use treesit-auto:
 #+begin_src emacs-lisp
@@ -569,9 +607,16 @@ Treemacs is a package which creates a buffer displaying the file structure of th
   (use-package treemacs
       :ensure t
       :defer t
-      :config
-      ;; Integrate with project.el
-      (setq treemacs-project-follow-cleanup t))
+      :bind
+  	(:map global-map
+  		("C-c t" . treemacs)))
+#+end_src
+
+I want to use this with projectile, which requires the treemacs-projectile package:
+#+begin_src emacs-lisp
+  (use-package treemacs-projectile
+  	:after (treemacs projectile)
+  	:ensure t)
 #+end_src
 
 * Writing

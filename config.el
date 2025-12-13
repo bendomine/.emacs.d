@@ -260,6 +260,23 @@
 (setq TeX-parse-self t)
 (setq-default TeX-master nil)
 
+(use-package lsp-mode
+	:init
+	(setq lsp-keymap-prefix "C-c l")
+	:hook (
+			  (python-mode . lsp)
+			  (javascript-mode . lsp)
+			  (lsp-mode . lsp-enable-which-key-integration))
+	:commands lsp)
+
+(use-package lsp-ui :commands lsp-ui-mode)
+
+(add-to-list 'load-path (expand-file-name "lib/lsp-mode" user-emacs-directory))
+(add-to-list 'load-path (expand-file-name "lib/lsp-mode/clients" user-emacs-directory))
+
+;; (if (eq system-type 'darwin)
+;; 	(setq lsp-clients-clangd-executable "/opt/homebrew/bin/clangd"))
+
 (use-package treesit-auto
   :custom
   (treesit-auto-install 'prompt)
