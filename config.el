@@ -274,6 +274,10 @@
 (add-to-list 'load-path (expand-file-name "lib/lsp-mode" user-emacs-directory))
 (add-to-list 'load-path (expand-file-name "lib/lsp-mode/clients" user-emacs-directory))
 
+(use-package lsp-treemacs :commands lsp-treemacs-errors-list)
+(require 'lsp-treemacs)
+(lsp-treemacs-sync-mode 1)
+
 ;; (if (eq system-type 'darwin)
 ;; 	(setq lsp-clients-clangd-executable "/opt/homebrew/bin/clangd"))
 
@@ -326,9 +330,13 @@
 (use-package treemacs
     :ensure t
     :defer t
-    :config
-    ;; Integrate with project.el
-    (setq treemacs-project-follow-cleanup t))
+    :bind
+	(:map global-map
+		("C-c t" . treemacs)))
+
+(use-package treemacs-projectile
+	:after (treemacs projectile)
+	:ensure t)
 
 (define-minor-mode writing-mode
 	"Minor mode for writing text in a distraction-free environment."
