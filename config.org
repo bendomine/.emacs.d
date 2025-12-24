@@ -80,7 +80,7 @@ I primarily use Mac, so I want most keybindings to use the command key. So, I’
 This means that I need to resolve the keyboard conflicts that arise from mac taking over certain commands, such as command + space.
 #+begin_src emacs-lisp
   (if (eq system-type 'darwin)
-      (global-set-key (kbd "s-SPC") 'set-mark-command))
+      (global-set-key (kbd "C-j") 'set-mark-command))
 #+end_src
 
 * UI
@@ -220,13 +220,14 @@ I originally used project.el, but I’ve decided to try projectile instead. I’
                 ("C-c C-p" . projectile-command-map)))
 #+end_src
 ** Jumping
-I use Avy to quickly jump to any visible text. The function I primarily use here is goto-char-timer, and I’ve dropped that timer all the way down to 0.25 seconds for speed.
+I use Avy to quickly jump to any visible text. +The function I primarily use here is goto-char-timer, and I’ve dropped that timer all the way down to 0.25 seconds for speed.+
+I previously used goto-char-timer, and I’m starting to realize that it’s not the best for me. I always end up typing the whole word, or if not, thinking about how many characters to type. This is suboptimal, so I need a consistent method. Given this, I should just use goto-char or goto-char-2. I’ll start by trying goto-char-2.
 #+begin_src emacs-lisp
   (use-package avy
       :ensure t
       :config
-      (setq avy-timeout-seconds 0.25)
-      :bind (("M-j" . avy-goto-char-timer)))
+      ;;(setq avy-timeout-seconds 0.25)
+      :bind (("M-j" . avy-goto-char-2)))
 
 #+end_src
 
@@ -241,11 +242,11 @@ Just for visual clarity, I also want to briefly highlight the thing we jump to. 
           (pulse-momentary-highlight-region first last)))
 #+end_src
 
-Next, run this function whenever we jump from Avy:
++Next, run this function whenever we jump from Avy:+ The new goto-char-2 function breaks this, so I’ll have to fix it later if I decide to stay with goto-char-2.
 #+begin_src emacs-lisp
   (require 'avy)
 
-  (advice-add 'avy-goto-char-timer :after #'pulse-symbol-at-point)
+  ;; (advice-add 'avy-goto-char-2 :around #'pulse-symbol-at-point)
 #+end_src
 
 I also want this functionality on each jump of an incremental search.
@@ -337,6 +338,15 @@ I want visual line mode enabled in text modes:
 #+begin_src emacs-lisp
   (add-hook 'text-mode-hook 'visual-line-mode)
 #+end_src
+** Snippets
+For snippets, particularly in LaTeX and HTML, I’ll use yasnippet:
+#+begin_src emacs-lisp
+  (use-package yasnippet
+  	:hook (prog-mode . yas-minor-mode)
+  	:config
+  	(yas-reload-all))
+  (yas-global-mode)
+#+end_src
 
 * Completions and Search
 ** Keybinding Completion
@@ -383,12 +393,14 @@ As far as I can tell, there are two primary options for in-buffer completion: co
           ;;     ("C-p" . corfu-previous)
           ;;     ("S-TAB" . corfu-previous)
           ;;     ([backtab] . corfu-previous)
+  		("M-<backspace>" . backward-kill-word)
+  		("C-<backspace>" . backward-kill-word)
           ("ESC" . corfu-quit)))
 #+end_src
 
 I want completion in programming buffers:
 #+begin_src emacs-lisp
-  (add-hook 'prog-mode-hook 'corfu-mode)
+  (global-corfu-mode)
 #+end_src
 
 I also want to delay the completion a little bit, instead of it popping up immediately. I have this code set up to add a time delay of 0.2 seconds; however, the corfu documentation states that this can create lag, so I’ve commented it out for now.
@@ -477,6 +489,72 @@ I’ll also use Auctex for some other LaTeX utilities like syntax highlighting.
   (setq TeX-parse-self t)
   (setq-default TeX-master nil)
 #+end_src
+** Encryption
+I’ll use GPG and org-crypt to allow for the encryption of specific headings in org mode.
+#+begin_src emacs-lisp
+  (require 'org-crypt)
+  (org-crypt-use-before-save-magic)
+  (setq org-crypt-key nil)
+#+end_src
+
+I want encryption on the crypt tag:
+#+begin_src emacs-lisp
+  (setq org-crypt-tag-matcher "crypt")
+  (setq org-tags-exclude-from-inheritance '("crypt"))
+#+end_src
+
+** Roam
+Previous note-taking has been accomplished with text files, and more recently with hierarchical org note files. I’d like to instead use org-roam for notes.
+#+begin_src emacs-lisp
+  (use-package org-roam
+  	:ensure t
+  	:custom
+  	(org-roam-directory "~/RoamNotes")
+  	:bind (("C-c n l" . org-roam-buffer-toggle)
+  			  ("C-c n f" . org-roam-node-find)
+  			  ("C-c n i" . org-roam-node-insert)
+  			  :map org-roam-dailies-map
+  			  ("Y" . org-roam-dailies-capture-yesterday)
+  			  ("T" . org-roam-dailies-capture-tomorrow))
+  	:bind-keymap
+  	("C-c n d" . org-roam-dailies-map)
+  	:config
+  	(require 'org-roam-dailies)
+  	(org-roam-setup))
+#+end_src
+
+The org-roam author recommends displaying the org-roam buffer as a separate window like this:
+#+begin_src emacs-lisp
+  (add-to-list 'display-buffer-alist
+  	'("\\*org-roam\\*"
+  		 (display-buffer-in-direction)
+  		 (direction . right)
+  		 (window-width . 0.33)
+  		 (window-height . fit-window-to-buffer)))
+#+end_src
+
+I’ll want to create some custom capture templates at some point, so I’ll override the templates variable, currently only providing the default template:
+#+begin_src emacs-lisp
+  (setq org-roam-capture-templates
+  	'(("d" "default" plain "%?"
+  		  :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
+  					  "#+title: ${title}\n")
+  		  :unnarrowed t)))
+#+end_src
+** Roam Dailies
+All daily roam notes should be stored in the /daily subfolder:
+#+begin_src emacs-lisp
+  (setq org-roam-dailies-directory "daily/")
+#+end_src
+
+I also want the default capture template to include only a single top-level heading. This is copied from the org-roam documentation:
+#+begin_src emacs-lisp
+  (setq org-roam-dailies-capture-templates
+      '(("d" "default" plain
+            "* %?"
+            :target (file+head "%<%Y-%m-%d>.org"
+                        "#+title: %<%Y-%m-%d>\n"))))
+#+end_src
 
 * Programming
 ** Language Server Protocol Client
@@ -489,7 +567,10 @@ I previously used the built-in Eglot for language server protocol support, but i
   			  (python-mode . lsp)
   			  (javascript-mode . lsp)
   			  (lsp-mode . lsp-enable-which-key-integration))
-  	:commands lsp)
+  	:commands lsp
+  	:custom
+  	(lsp-enable-snippet t)
+  	(lsp-completion-provider :none))
 #+end_src
 
 I also want the ui integrations of lsp-mode, which adds nice features like sideline, peek, and documentation.
@@ -515,6 +596,13 @@ For c++, I want to use clangd. I’m going to assume this is already installed v
 #+begin_src emacs-lisp
   ;; (if (eq system-type 'darwin)
   ;; 	(setq lsp-clients-clangd-executable "/opt/homebrew/bin/clangd"))
+#+end_src
+
+** Web Development
+For quick completions, I’ll use emmet-mode:
+#+begin_src emacs-lisp
+  (use-package emmet-mode
+  	:hook (html-mode css-mode web-mode))
 #+end_src
 
 ** Syntax Highlighting

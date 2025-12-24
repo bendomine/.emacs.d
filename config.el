@@ -37,7 +37,7 @@
 (setq mac-control-modifier 'super)
 
 (if (eq system-type 'darwin)
-    (global-set-key (kbd "s-SPC") 'set-mark-command))
+    (global-set-key (kbd "C-j") 'set-mark-command))
 
 (pixel-scroll-precision-mode)
 
@@ -108,8 +108,8 @@
 (use-package avy
     :ensure t
     :config
-    (setq avy-timeout-seconds 0.25)
-    :bind (("M-j" . avy-goto-char-timer)))
+    ;;(setq avy-timeout-seconds 0.25)
+    :bind (("M-j" . avy-goto-char-2)))
 
 (defun pulse-symbol-at-point ()
     "Briefly pulse the symbol under the current point."
@@ -121,7 +121,7 @@
 
 (require 'avy)
 
-(advice-add 'avy-goto-char-timer :after #'pulse-symbol-at-point)
+;; (advice-add 'avy-goto-char-2 :around #'pulse-symbol-at-point)
 
 (add-hook 'isearch-mode-end-hook #'pulse-symbol-at-point)
 
@@ -175,6 +175,12 @@
 
 (add-hook 'text-mode-hook 'visual-line-mode)
 
+(use-package yasnippet
+	:hook (prog-mode . yas-minor-mode)
+	:config
+	(yas-reload-all))
+(yas-global-mode)
+
 (use-package which-key
     :ensure t
     :config
@@ -204,9 +210,11 @@
         ;;     ("C-p" . corfu-previous)
         ;;     ("S-TAB" . corfu-previous)
         ;;     ([backtab] . corfu-previous)
+		("M-<backspace>" . backward-kill-word)
+		("C-<backspace>" . backward-kill-word)
         ("ESC" . corfu-quit)))
 
-(add-hook 'prog-mode-hook 'corfu-mode)
+(global-corfu-mode)
 
 ;;  (setq corfu-auto-delay 0.2)
 
@@ -260,6 +268,47 @@
 (setq TeX-parse-self t)
 (setq-default TeX-master nil)
 
+(require 'org-crypt)
+(org-crypt-use-before-save-magic)
+(setq org-crypt-key nil)
+
+(setq org-crypt-tag-matcher "crypt")
+(setq org-tags-exclude-from-inheritance '("crypt"))
+
+(use-package org-roam
+	:ensure t
+	:custom
+	(org-roam-directory "~/RoamNotes")
+	:bind (("C-c n l" . org-roam-buffer-toggle)
+			  ("C-c n f" . org-roam-node-find)
+			  ("C-c n i" . org-roam-node-insert))
+	:bind-keymap
+	("C-c n d" . org-roam-dailies-map)
+	:config
+	(require 'org-roam-dailies)
+	(org-roam-setup))
+
+(add-to-list 'display-buffer-alist
+	'("\\*org-roam\\*"
+		 (display-buffer-in-direction)
+		 (direction . right)
+		 (window-width . 0.33)
+		 (window-height . fit-window-to-buffer)))
+
+(setq org-roam-capture-templates
+	'(("d" "default" plain "%?"
+		  :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
+					  "#+title: ${title}\n")
+		  :unnarrowed t)))
+
+(setq org-roam-dailies-directory "daily/")
+
+(setq org-roam-dailies-capture-templates
+    '(("d" "default" plain
+          "* %?"
+          :target (file+head "%<%Y-%m-%d>.org"
+                      "#+title: %<%Y-%m-%d>\n"))))
+
 (use-package lsp-mode
 	:init
 	(setq lsp-keymap-prefix "C-c l")
@@ -267,7 +316,10 @@
 			  (python-mode . lsp)
 			  (javascript-mode . lsp)
 			  (lsp-mode . lsp-enable-which-key-integration))
-	:commands lsp)
+	:commands lsp
+	:custom
+	(lsp-enable-snippet t)
+	(lsp-completion-provider :none))
 
 (use-package lsp-ui :commands lsp-ui-mode)
 
@@ -280,6 +332,9 @@
 
 ;; (if (eq system-type 'darwin)
 ;; 	(setq lsp-clients-clangd-executable "/opt/homebrew/bin/clangd"))
+
+(use-package emmet-mode
+	:hook (html-mode css-mode web-mode))
 
 (use-package treesit-auto
   :custom

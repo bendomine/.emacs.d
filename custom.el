@@ -24,10 +24,11 @@
  '(org-support-shift-select t)
  '(package-selected-packages
 	  '(auctex cdlatex centaur-tabs consult corfu doom-modeline doom-themes
-		   exec-path-from-shell flycheck lsp-mode lsp-treemacs lsp-ui
-		   magit marginalia multiple-cursors olivetti orderless
-		   org-modern projectile treemacs treemacs-projectile
-		   treesit-auto vertico-posframe))
+		   emmet-mode emmett-mode exec-path-from-shell flycheck
+		   lsp-mode lsp-treemacs lsp-ui magit marginalia
+		   multiple-cursors olivetti orderless org-modern org-roam
+		   projectile treemacs treemacs-projectile treesit-auto
+		   vertico-posframe yasnippet))
  '(ring-bell-function 'ignore)
  '(scroll-bar-mode nil)
  '(send-mail-function 'mailclient-send-it)
