@@ -555,6 +555,24 @@ I also want the default capture template to include only a single top-level head
             :target (file+head "%<%Y-%m-%d>.org"
                         "#+title: %<%Y-%m-%d>\n"))))
 #+end_src
+** Roam UI
+There’s a package for displaying a graph of all your org-roam nodes. I don’t think it’s that useful, but it looks cool so why not.
+#+begin_src emacs-lisp
+  (use-package org-roam-ui
+      :after org-roam
+  	;;         normally we'd recommend hooking orui after org-roam, but since org-roam does not have
+  	;;         a hookable mode anymore, you're advised to pick something yourself
+  	;;         if you don't care about startup time, use
+  	;;  :hook (after-init . org-roam-ui-mode)
+      :config
+      (setq org-roam-ui-sync-theme t
+          org-roam-ui-follow t
+          org-roam-ui-update-on-save t
+          org-roam-ui-open-on-start t))
+#+end_src
+
+In the future, I’d like to prevent it from automatically opening a tab in my browser, and instead display it with an xwidget-webkit.
+
 ** Custom Commands
 One great thing about org mode is that you can have a large document but hide the majority of it, excepting only what you’re currently working on. However, there’s no good command to do this. I’m therefore adding a shortcut by combining two other commands.
 #+begin_src emacs-lisp
