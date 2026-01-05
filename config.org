@@ -220,14 +220,14 @@ I originally used project.el, but I’ve decided to try projectile instead. I’
                 ("C-c C-p" . projectile-command-map)))
 #+end_src
 ** Jumping
-I use Avy to quickly jump to any visible text. +The function I primarily use here is goto-char-timer, and I’ve dropped that timer all the way down to 0.25 seconds for speed.+
-I previously used goto-char-timer, and I’m starting to realize that it’s not the best for me. I always end up typing the whole word, or if not, thinking about how many characters to type. This is suboptimal, so I need a consistent method. Given this, I should just use goto-char or goto-char-2. I’ll start by trying goto-char-2.
+I use Avy to quickly jump to any visible text. The function I primarily use here is goto-char-timer, and I’ve dropped that timer all the way down to 0.25 seconds for speed.
++I previously used goto-char-timer, and I’m starting to realize that it’s not the best for me. I always end up typing the whole word, or if not, thinking about how many characters to type. This is suboptimal, so I need a consistent method. Given this, I should just use goto-char or goto-char-2. I’ll start by trying goto-char-2.+
 #+begin_src emacs-lisp
   (use-package avy
       :ensure t
       :config
-      ;;(setq avy-timeout-seconds 0.25)
-      :bind (("M-j" . avy-goto-char-2)))
+      (setq avy-timeout-seconds 0.25)
+      :bind (("M-j" . avy-goto-char-timer)))
 
 #+end_src
 
@@ -246,7 +246,7 @@ Just for visual clarity, I also want to briefly highlight the thing we jump to. 
 #+begin_src emacs-lisp
   (require 'avy)
 
-  ;; (advice-add 'avy-goto-char-2 :around #'pulse-symbol-at-point)
+  (advice-add 'avy-goto-char-timer :after #'pulse-symbol-at-point)
 #+end_src
 
 I also want this functionality on each jump of an incremental search.
@@ -554,6 +554,21 @@ I also want the default capture template to include only a single top-level head
             "* %?"
             :target (file+head "%<%Y-%m-%d>.org"
                         "#+title: %<%Y-%m-%d>\n"))))
+#+end_src
+** Custom Commands
+One great thing about org mode is that you can have a large document but hide the majority of it, excepting only what you’re currently working on. However, there’s no good command to do this. I’m therefore adding a shortcut by combining two other commands.
+#+begin_src emacs-lisp
+  (defun org-fold-all-reveal ()
+  	"Cycle global visibility, then reveal."
+  	(interactive)
+  	(org-shifttab 1)
+  	(org-fold-reveal)
+  	)
+#+end_src
+
+I want this bound to C-c C-h in org mode.
+#+begin_src emacs-lisp
+  (define-key org-mode-map (kbd "C-c C-h") #'org-fold-all-reveal)
 #+end_src
 
 * Programming

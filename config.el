@@ -109,7 +109,7 @@
     :ensure t
     :config
     ;;(setq avy-timeout-seconds 0.25)
-    :bind (("M-j" . avy-goto-char-2)))
+    :bind (("M-j" . avy-goto-char-timer)))
 
 (defun pulse-symbol-at-point ()
     "Briefly pulse the symbol under the current point."
@@ -121,7 +121,7 @@
 
 (require 'avy)
 
-;; (advice-add 'avy-goto-char-2 :around #'pulse-symbol-at-point)
+;; (advice-add 'avy-goto-char-timer :around #'pulse-symbol-at-point)
 
 (add-hook 'isearch-mode-end-hook #'pulse-symbol-at-point)
 
@@ -281,7 +281,10 @@
 	(org-roam-directory "~/RoamNotes")
 	:bind (("C-c n l" . org-roam-buffer-toggle)
 			  ("C-c n f" . org-roam-node-find)
-			  ("C-c n i" . org-roam-node-insert))
+			  ("C-c n i" . org-roam-node-insert)
+			  :map org-roam-dailies-map
+			  ("Y" . org-roam-dailies-capture-yesterday)
+			  ("T" . org-roam-dailies-capture-tomorrow))
 	:bind-keymap
 	("C-c n d" . org-roam-dailies-map)
 	:config
