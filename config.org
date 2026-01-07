@@ -220,13 +220,13 @@ I originally used project.el, but I’ve decided to try projectile instead. I’
                 ("C-c C-p" . projectile-command-map)))
 #+end_src
 ** Jumping
-I use Avy to quickly jump to any visible text. The function I primarily use here is goto-char-timer, and I’ve dropped that timer all the way down to 0.25 seconds for speed.
+I use Avy to quickly jump to any visible text. The function I primarily use here is goto-char-timer, and I’ve dropped that timer all the way down to 0.15 seconds for speed.
 +I previously used goto-char-timer, and I’m starting to realize that it’s not the best for me. I always end up typing the whole word, or if not, thinking about how many characters to type. This is suboptimal, so I need a consistent method. Given this, I should just use goto-char or goto-char-2. I’ll start by trying goto-char-2.+
 #+begin_src emacs-lisp
   (use-package avy
       :ensure t
       :config
-      (setq avy-timeout-seconds 0.25)
+      (setq avy-timeout-seconds 0.15)
       :bind (("M-j" . avy-goto-char-timer)))
 
 #+end_src
@@ -536,10 +536,12 @@ The org-roam author recommends displaying the org-roam buffer as a separate wind
 I’ll want to create some custom capture templates at some point, so I’ll override the templates variable, currently only providing the default template:
 #+begin_src emacs-lisp
   (setq org-roam-capture-templates
-  	'(("d" "default" plain "%?"
-  		  :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
-  					  "#+title: ${title}\n")
-  		  :unnarrowed t)))
+    	'(("d" "default" plain "%?"
+    		  :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
+    					  "#+title: ${title}\n")
+    		  :unnarrowed t
+  		  :empty-lines 1
+  		  )))
 #+end_src
 ** Roam Dailies
 All daily roam notes should be stored in the /daily subfolder:
@@ -547,13 +549,20 @@ All daily roam notes should be stored in the /daily subfolder:
   (setq org-roam-dailies-directory "daily/")
 #+end_src
 
-I also want the default capture template to include only a single top-level heading. This is copied from the org-roam documentation:
+I want two capture templates. The first is copied directly from the documentation, and consists solely of a single headline. The second is for journal entries, and is therefore its own node.
 #+begin_src emacs-lisp
   (setq org-roam-dailies-capture-templates
       '(("d" "default" plain
             "* %?"
             :target (file+head "%<%Y-%m-%d>.org"
-                        "#+title: %<%Y-%m-%d>\n"))))
+                        "#+title: %<%Y-%m-%d>\n")
+  		  :empty-lines 1)
+  		 ("j" "journal" entry
+  			 "* Journal: %^{Title}\n\n%?"
+  			 :target (file+head "%<%Y-%m-%d>.org"
+  						 "#+title: %<%Y-%m-%d>\n")
+  			 :empty-lines 1)
+  		 ))
 #+end_src
 ** Roam UI
 There’s a package for displaying a graph of all your org-roam nodes. I don’t think it’s that useful, but it looks cool so why not.

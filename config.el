@@ -108,7 +108,7 @@
 (use-package avy
     :ensure t
     :config
-    ;;(setq avy-timeout-seconds 0.25)
+    (setq avy-timeout-seconds 0.25)
     :bind (("M-j" . avy-goto-char-timer)))
 
 (defun pulse-symbol-at-point ()
@@ -121,7 +121,7 @@
 
 (require 'avy)
 
-;; (advice-add 'avy-goto-char-timer :around #'pulse-symbol-at-point)
+(advice-add 'avy-goto-char-timer :after #'pulse-symbol-at-point)
 
 (add-hook 'isearch-mode-end-hook #'pulse-symbol-at-point)
 
@@ -311,6 +311,27 @@
           "* %?"
           :target (file+head "%<%Y-%m-%d>.org"
                       "#+title: %<%Y-%m-%d>\n"))))
+
+(use-package org-roam-ui
+    :after org-roam
+	;;         normally we'd recommend hooking orui after org-roam, but since org-roam does not have
+	;;         a hookable mode anymore, you're advised to pick something yourself
+	;;         if you don't care about startup time, use
+	;;  :hook (after-init . org-roam-ui-mode)
+    :config
+    (setq org-roam-ui-sync-theme t
+        org-roam-ui-follow t
+        org-roam-ui-update-on-save t
+        org-roam-ui-open-on-start t))
+
+(defun org-fold-all-reveal ()
+	"Cycle global visibility, then reveal."
+	(interactive)
+	(org-shifttab 1)
+	(org-fold-reveal)
+	)
+
+(define-key org-mode-map (kbd "C-c C-h") #'org-fold-all-reveal)
 
 (use-package lsp-mode
 	:init
