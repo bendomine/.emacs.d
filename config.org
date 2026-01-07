@@ -509,7 +509,7 @@ Previous note-taking has been accomplished with text files, and more recently wi
   (use-package org-roam
   	:ensure t
   	:custom
-  	(org-roam-directory "~/RoamNotes")
+  	(org-roam-directory "~/org-roam")
   	:bind (("C-c n l" . org-roam-buffer-toggle)
   			  ("C-c n f" . org-roam-node-find)
   			  ("C-c n i" . org-roam-node-insert)
@@ -840,6 +840,9 @@ Next, I’ll have a function for turning a given buffer into the splash screen:
                                                             (let ((buffer (generate-new-buffer "New org document")))
                                                                 (switch-to-buffer buffer)
                                                                 (org-mode))) 'follow-link t)
+  	(center-line) (insert "\n\n")
+  	(insert-text-button "New journal entry" 'action (lambda (_) (org-roam-dailies-capture-today nil "j")) 'follow-link t)
+  	
   	(center-line) (insert "\n")
 
   	(setq mode-line-format nil)

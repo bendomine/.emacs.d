@@ -108,7 +108,7 @@
 (use-package avy
     :ensure t
     :config
-    (setq avy-timeout-seconds 0.25)
+    (setq avy-timeout-seconds 0.15)
     :bind (("M-j" . avy-goto-char-timer)))
 
 (defun pulse-symbol-at-point ()
@@ -299,10 +299,12 @@
 		 (window-height . fit-window-to-buffer)))
 
 (setq org-roam-capture-templates
-	'(("d" "default" plain "%?"
-		  :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
-					  "#+title: ${title}\n")
-		  :unnarrowed t)))
+  	'(("d" "default" plain "%?"
+  		  :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
+  					  "#+title: ${title}\n")
+  		  :unnarrowed t
+		  :empty-lines 1
+		  )))
 
 (setq org-roam-dailies-directory "daily/")
 
@@ -310,7 +312,14 @@
     '(("d" "default" plain
           "* %?"
           :target (file+head "%<%Y-%m-%d>.org"
-                      "#+title: %<%Y-%m-%d>\n"))))
+                      "#+title: %<%Y-%m-%d>\n")
+		  :empty-lines 1)
+		 ("j" "journal" entry
+			 "* Journal: %^{Title}\n\n%?"
+			 :target (file+head "%<%Y-%m-%d>.org"
+						 "#+title: %<%Y-%m-%d>\n")
+			 :empty-lines 1)
+		 ))
 
 (use-package org-roam-ui
     :after org-roam
@@ -493,6 +502,9 @@
                                                           (let ((buffer (generate-new-buffer "New org document")))
                                                               (switch-to-buffer buffer)
                                                               (org-mode))) 'follow-link t)
+	(center-line) (insert "\n\n")
+	(insert-text-button "New journal entry" 'action (lambda (_) (org-roam-dailies-capture-today nil "j")) 'follow-link t)
+	
 	(center-line) (insert "\n")
 
 	(setq mode-line-format nil)
