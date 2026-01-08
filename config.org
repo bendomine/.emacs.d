@@ -80,7 +80,7 @@ I primarily use Mac, so I want most keybindings to use the command key. So, I’
 This means that I need to resolve the keyboard conflicts that arise from mac taking over certain commands, such as command + space.
 #+begin_src emacs-lisp
   (if (eq system-type 'darwin)
-      (global-set-key (kbd "C-j") 'set-mark-command))
+      (global-set-key (kbd "C-o") 'set-mark-command))
 #+end_src
 
 * UI

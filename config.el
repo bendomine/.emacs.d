@@ -37,7 +37,7 @@
 (setq mac-control-modifier 'super)
 
 (if (eq system-type 'darwin)
-    (global-set-key (kbd "C-j") 'set-mark-command))
+    (global-set-key (kbd "C-o") 'set-mark-command))
 
 (pixel-scroll-precision-mode)
 
@@ -278,7 +278,7 @@
 (use-package org-roam
 	:ensure t
 	:custom
-	(org-roam-directory "~/RoamNotes")
+	(org-roam-directory "~/org-roam")
 	:bind (("C-c n l" . org-roam-buffer-toggle)
 			  ("C-c n f" . org-roam-node-find)
 			  ("C-c n i" . org-roam-node-insert)
