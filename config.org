@@ -681,6 +681,16 @@ For help with version control, I’ll use magit. I currently don’t have this c
 #+end_src
 
 ** Indentation
+I want indentation lines to be displayed, so I’ll use the highlight-indent-guides package.
+#+begin_src emacs-lisp
+  (use-package highlight-indent-guides
+  	:ensure t
+  	:hook (prog-mode . highlight-indent-guides-mode)
+  	:custom
+  	(highlight-indent-guides-method 'character)
+  	(highlight-indent-guides-auto-character-face-perc 80))
+#+end_src
+
 I’m a proud tabs user. We want to use tabs whenever possible:
 #+begin_src emacs-lisp
   (setq-default indent-tabs-mode t)

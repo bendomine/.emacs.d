@@ -387,6 +387,13 @@
 
 (use-package magit)
 
+(use-package highlight-indent-guides
+	:ensure t
+	:hook (prog-mode . highlight-indent-guides-mode)
+	:custom
+	(highlight-indent-guides-method 'character)
+	(highlight-indent-guides-auto-character-face-perc 80))
+
 (setq-default indent-tabs-mode t)
 
 ;; idk if it’s necessary, but just to be extra sure:
