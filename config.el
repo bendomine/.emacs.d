@@ -39,6 +39,9 @@
 (if (eq system-type 'darwin)
     (global-set-key (kbd "C-o") 'set-mark-command))
 
+(global-set-key (kbd "C-z") 'undo)
+(global-set-key (kbd "C-S-z") 'undo-redo)
+
 (pixel-scroll-precision-mode)
 
 (use-package nerd-icons
@@ -48,7 +51,7 @@
 
 (use-package doom-themes
     :init
-    (load-theme 'doom-dark+))
+    (load-theme 'doom-dracula))
 
 (set-face-attribute 'line-number-current-line nil
     :foreground (face-attribute 'highlight :background))
@@ -70,24 +73,18 @@
 (setq doom-modeline-battery t)
 (display-battery-mode +1)
 
-(use-package centaur-tabs
-    :demand
-    :config
-    (set-face-attribute 'centaur-tabs-default nil :height 5)
-    (centaur-tabs-mode t)
-    )
+(let ((color (face-attribute 'highlight :background)))
+	(set-face-attribute 'tab-bar-tab nil :box '(:line-width 10 :style flat-button) :underline `(:color ,color :style line :position t)
+	))
 
-(setq centaur-tabs-set-icons t)
-(setq centaur-tabs-icon-type 'nerd-icons)
-
-(setq centaur-tabs-style "bar")
-(setq centaur-tabs-set-modified-marker t)
-(setq centaur-tabs-set-bar 'left)
-(set-face-attribute 'centaur-tabs-default nil :height 5)
-
-(centaur-tabs-group-by-projectile-project)
-
-(add-hook 'special-mode-hook 'centaur-tabs-local-mode)
+(add-hook 'tab-bar-mode-hook (lambda () (setq tab-bar-close-button
+	#(" " 0 1
+	 (close-tab t rear-nonsticky t help-echo "Click to close tab" face
+		 (:box nil) display
+		 (image :type svg :file
+			 "/opt/homebrew/Cellar/emacs-plus@30/30.2/share/emacs/30.2/etc/images/symbols/cross_16.svg"
+			 :height (1 . em) :scale 1 :margin 1 :ascent center
+			 :transform-smoothing t))))))
 
 (use-package vertico-posframe
     :after vertico
@@ -103,7 +100,7 @@
     :config
     (projectile-mode +1)
     :bind (:map projectile-mode-map
-              ("C-c C-p" . projectile-command-map)))
+              ("C-c p" . projectile-command-map)))
 
 (use-package avy
     :ensure t
@@ -124,6 +121,21 @@
 (advice-add 'avy-goto-char-timer :after #'pulse-symbol-at-point)
 
 (add-hook 'isearch-mode-end-hook #'pulse-symbol-at-point)
+
+(defun my/comment-uncomment ()
+	"Runs comment-uncomment on the region if active, or the current line if not."
+	(interactive)
+    (if (region-active-p)
+		(progn (comment-or-uncomment-region (region-beginning) (region-end)))
+		(progn (push-mark)
+			(beginning-of-line)
+			(push-mark)
+			(end-of-line)
+			(comment-or-uncomment-region (region-beginning) (region-end))
+			(set-mark-command t)
+			(set-mark-command t))))
+
+(global-set-key (kbd "C-/") 'my/comment-uncomment)
 
 (package-install 'multiple-cursors)
 (require 'multiple-cursors)
@@ -181,6 +193,9 @@
 	(yas-reload-all))
 (yas-global-mode)
 
+(setq require-final-newline nil)
+(setq mode-require-final-newline nil)
+
 (use-package which-key
     :ensure t
     :config
@@ -202,6 +217,9 @@
     :custom
     (corfu-auto t)
     (corfu-cycle t) ;; Enable cycling for `corfu-next/previous'
+	:hook ((prog-mode . corfu-mode)
+			  (shell-mode . corfu-mode)
+			  (eshell-mode . corfu-mode))
     :bind
     (:map corfu-map
         ;;     ("TAB" . corfu-next)
@@ -213,8 +231,6 @@
 		("M-<backspace>" . backward-kill-word)
 		("C-<backspace>" . backward-kill-word)
         ("ESC" . corfu-quit)))
-
-(global-corfu-mode)
 
 ;;  (setq corfu-auto-delay 0.2)
 
@@ -235,6 +251,8 @@
 
 (package-install 'org-modern)
 (with-eval-after-load 'org (global-org-modern-mode))
+
+(setq org-modern-table nil)
 
 (package-install 'olivetti)
 (setq olivetti-body-width 0.6)
@@ -304,7 +322,13 @@
   					  "#+title: ${title}\n")
   		  :unnarrowed t
 		  :empty-lines 1
-		  )))
+		  )
+		 ("p" "physics" plain "%?"
+  			 :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
+  						 "#+startup: latexpreview\n#+title: ${title}\n")
+  			 :unnarrowed t
+			 :empty-lines 1
+			 )))
 
 (setq org-roam-dailies-directory "daily/")
 
@@ -338,9 +362,17 @@
 	(interactive)
 	(org-shifttab 1)
 	(org-fold-reveal)
+	(message "")
 	)
 
 (define-key org-mode-map (kbd "C-c C-h") #'org-fold-all-reveal)
+
+(use-package valign
+	:hook (org-mode . valign-mode)
+	:config (setq valign-fancy-bar t))
+
+(org-babel-do-load-languages
+	'org-babel-load-languages '((python . t)))
 
 (use-package lsp-mode
 	:init
@@ -362,6 +394,9 @@
 (use-package lsp-treemacs :commands lsp-treemacs-errors-list)
 (require 'lsp-treemacs)
 (lsp-treemacs-sync-mode 1)
+
+(setq lsp-ui-doc-delay 0.85)
+(setq lsp-idle-delay 0)
 
 ;; (if (eq system-type 'darwin)
 ;; 	(setq lsp-clients-clangd-executable "/opt/homebrew/bin/clangd"))
@@ -394,20 +429,6 @@
 	(highlight-indent-guides-method 'character)
 	(highlight-indent-guides-auto-character-face-perc 80))
 
-(setq-default indent-tabs-mode t)
-
-;; idk if it’s necessary, but just to be extra sure:
-(add-hook 'prog-mode-hook (lambda () (setq indent-tabs-mode t)))
-
-(setq-default tab-width 4)
-(setq-default standard-indent 4)
-
-(setq js-indent-level 4
-    typescript-indent-level 4
-	python-indent-offset 4
-	c-basic-offset 4
-	lisp-indent-offset 4)
-
 (add-hook 'prog-mode-hook 'display-line-numbers-mode)
 (setq display-line-numbers-width-start t)
 (setq display-line-numbers-grow-only t)
@@ -420,7 +441,7 @@
     (interactive)
     (projectile-run-async-shell-command-in-root "python3 -m http.server"))
 
-(define-key projectile-mode-map (kbd "C-c C-p w") #'start-web-server-in-project)
+(define-key projectile-mode-map (kbd "C-c p w") #'start-web-server-in-project)
 
 (use-package treemacs
     :ensure t
@@ -531,7 +552,7 @@
             (bendomine/create-splash-screen))
 
         (switch-to-buffer new-buffer)
-        (if (or centaur-tabs-mode centaur-tabs-local-mode) (centaur-tabs-local-mode))
+        (when (bound-and-true-p centaur-tabs-mode) (if (or centaur-tabs-mode centaur-tabs-local-mode) (centaur-tabs-local-mode)))
         (message "")))
 
 (add-hook 'window-setup-hook (lambda ()

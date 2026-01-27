@@ -5,30 +5,23 @@
  ;; If there is more than one, they won't work right.
  '(cursor-type 'bar)
  '(custom-safe-themes
-	  '("aec7b55f2a13307a55517fdf08438863d694550565dee23181d2ebd973ebd6b8"
-		   "dd4582661a1c6b865a33b89312c97a13a3885dc95992e2e5fc57456b4c545176"
-		   default))
+   '("dd4582661a1c6b865a33b89312c97a13a3885dc95992e2e5fc57456b4c545176"
+     default))
  '(electric-quote-mode t)
  '(fringe-mode '(1 . 1) nil (fringe))
  '(inhibit-startup-screen t)
  '(org-babel-python-command "python3")
  '(org-confirm-babel-evaluate nil)
  '(org-format-latex-options
-	  '(:foreground default :background default :scale 1.55 :html-foreground
-		   "Black" :html-background "Transparent" :html-scale 1.0
-		   :matchers ("begin" "$1" "$" "$$" "\\(" "\\[")))
+   '(:foreground default :background default :scale 1.55 :html-foreground
+		 "Black" :html-background "Transparent" :html-scale
+		 1.0 :matchers ("begin" "$1" "$" "$$" "\\(" "\\[")))
  '(org-hide-emphasis-markers t)
  '(org-highlight-latex-and-related '(native latex script entities))
  '(org-preview-latex-default-process 'dvisvgm)
  '(org-return-follows-link t)
  '(org-support-shift-select t)
- '(package-selected-packages
-	  '(auctex cdlatex centaur-tabs consult corfu doom-modeline doom-themes
-		   emmet-mode emmett-mode exec-path-from-shell flycheck
-		   lsp-mode lsp-treemacs lsp-ui magit marginalia
-		   multiple-cursors olivetti orderless org-modern org-roam
-		   org-roam-ui projectile treemacs treemacs-projectile
-		   treesit-auto vertico-posframe yasnippet))
+ '(package-selected-packages nil)
  '(ring-bell-function 'ignore)
  '(scroll-bar-mode nil)
  '(send-mail-function 'mailclient-send-it)
@@ -46,4 +39,5 @@
  '(org-level-5 ((t (:inherit default :weight bold :foreground "gray80" :font "Lucida Grande"))))
  '(org-level-6 ((t (:inherit default :weight bold :foreground "gray80" :font "Lucida Grande"))))
  '(org-level-7 ((t (:inherit default :weight bold :foreground "gray80" :font "Lucida Grande"))))
- '(org-level-8 ((t (:inherit default :weight bold :foreground "gray80" :font "Lucida Grande")))))
+ '(org-level-8 ((t (:inherit default :weight bold :foreground "gray80" :font "Lucida Grande"))))
+ '(tab-bar-tab ((t (:box (:line-width (10 . 10) :style flat-button) :underline (:color foreground-color :style line :position t))))))

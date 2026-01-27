@@ -82,6 +82,12 @@ This means that I need to resolve the keyboard conflicts that arise from mac tak
   (if (eq system-type 'darwin)
       (global-set-key (kbd "C-o") 'set-mark-command))
 #+end_src
+** Undo, Redo
+I want to use C-/ for commenting, so I’ll bind undo to C-z like normal. I don’t need to use suspend-frame much at all, so this should be acceptable.
+#+begin_src emacs-lisp
+  (global-set-key (kbd "C-z") 'undo)
+  (global-set-key (kbd "C-S-z") 'undo-redo)
+#+end_src
 
 * UI
 ** Scrolling
@@ -118,7 +124,7 @@ For now I’ll just go with dark+.
 #+begin_src emacs-lisp :results silent
   (use-package doom-themes
       :init
-      (load-theme 'doom-dark+))
+      (load-theme 'doom-dracula))
 #+end_src
 
 I want the active line number in line number mode to be highlighted more brightly:
@@ -162,23 +168,23 @@ Just for fun, I’ll also enable the battery indicator, updating every 30 second
 
 ** Tabs
 I currently use centaur-tabs, though I’m not sure how much I like it.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package centaur-tabs
       :demand
       :config
       (set-face-attribute 'centaur-tabs-default nil :height 5)
-      (centaur-tabs-mode t)
+      (centaur-tabs-mode -1)
       )
 #+end_src
 
 I want to display the icon for the current buffer in each tab:
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (setq centaur-tabs-set-icons t)
   (setq centaur-tabs-icon-type 'nerd-icons)
 #+end_src
 
 And a few other graphical things. I want a marker for unsaved changes, no new tab button, bar-style tabs, and a highlight bar to the left. Finally, we’ll set the height to 5.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (setq centaur-tabs-style "bar")
   (setq centaur-tabs-set-modified-marker t)
   (setq centaur-tabs-set-bar 'left)
@@ -186,13 +192,34 @@ And a few other graphical things. I want a marker for unsaved changes, no new ta
 #+end_src
 
 Next, I need a tab grouping function. I only want tabs for buffers that are part of a project, and then I want the tabs to be grouped by that project. I’ll group by the projectile project:
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (centaur-tabs-group-by-projectile-project)
 #+end_src
 
 At some point, I’ll add functionality to hide the tab bar when in a buffer that isn’t part of a project. For now, I’ll be content with hiding tabs in special mode buffers:
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (add-hook 'special-mode-hook 'centaur-tabs-local-mode)
+#+end_src
+
+** Tab Bar
+I want to move away from centaur-tabs, as it’s a very buggy and generally annoying package. Instead, I’ll customize the built-in tab bar to work a little better.
+#+begin_src emacs-lisp
+  (let ((color (face-attribute 'highlight :background)))
+  	(set-face-attribute 'tab-bar-tab nil :box '(:line-width 10 :style flat-button) :underline `(:color ,color :style line :position t)
+  	))
+#+end_src
+
+The above face adds an underline, but the box face messes with the underline on the close button for some reason.
+
+#+begin_src emacs-lisp
+  (add-hook 'tab-bar-mode-hook (lambda () (setq tab-bar-close-button
+  	#(" " 0 1
+  	 (close-tab t rear-nonsticky t help-echo "Click to close tab" face
+  		 (:box nil) display
+  		 (image :type svg :file
+  			 "/opt/homebrew/Cellar/emacs-plus@30/30.2/share/emacs/30.2/etc/images/symbols/cross_16.svg"
+  			 :height (1 . em) :scale 1 :margin 1 :ascent center
+  			 :transform-smoothing t))))))
 #+end_src
 
 ** Minibuffer
@@ -217,7 +244,7 @@ I originally used project.el, but I’ve decided to try projectile instead. I’
       :config
       (projectile-mode +1)
       :bind (:map projectile-mode-map
-                ("C-c C-p" . projectile-command-map)))
+                ("C-c p" . projectile-command-map)))
 #+end_src
 ** Jumping
 I use Avy to quickly jump to any visible text. The function I primarily use here is goto-char-timer, and I’ve dropped that timer all the way down to 0.15 seconds for speed.
@@ -252,6 +279,24 @@ Just for visual clarity, I also want to briefly highlight the thing we jump to. 
 I also want this functionality on each jump of an incremental search.
 #+begin_src emacs-lisp
   (add-hook 'isearch-mode-end-hook #'pulse-symbol-at-point)
+#+end_src
+** Commenting
+I want commenting to work like in most editors. Specifically, I want to run comment-or-uncomment region; I want to run it on the region if it’s active, or the current line if not.
+#+begin_src emacs-lisp
+  (defun my/comment-uncomment ()
+  	"Runs comment-uncomment on the region if active, or the current line if not."
+  	(interactive)
+      (if (region-active-p)
+  		(progn (comment-or-uncomment-region (region-beginning) (region-end)))
+  		(progn (push-mark)
+  			(beginning-of-line)
+  			(push-mark)
+  			(end-of-line)
+  			(comment-or-uncomment-region (region-beginning) (region-end))
+  			(set-mark-command t)
+  			(set-mark-command t))))
+
+  (global-set-key (kbd "C-/") 'my/comment-uncomment)
 #+end_src
 
 ** Multiple Cursors
@@ -347,6 +392,12 @@ For snippets, particularly in LaTeX and HTML, I’ll use yasnippet:
   	(yas-reload-all))
   (yas-global-mode)
 #+end_src
+** File Saving
+Emacs defaults to adding a newline at the end of the file on saving. I dislike this when editing, even though having one is conventional. At some point, I’ll probably add a function to add the newline, save, and then remove it; for now, though, I’ll just disable the newline.
+#+begin_src emacs-lisp
+  (setq require-final-newline nil)
+  (setq mode-require-final-newline nil)
+#+end_src
 
 * Completions and Search
 ** Keybinding Completion
@@ -385,6 +436,9 @@ As far as I can tell, there are two primary options for in-buffer completion: co
       :custom
       (corfu-auto t)
       (corfu-cycle t) ;; Enable cycling for `corfu-next/previous'
+  	:hook ((prog-mode . corfu-mode)
+  			  (shell-mode . corfu-mode)
+  			  (eshell-mode . corfu-mode))
       :bind
       (:map corfu-map
           ;;     ("TAB" . corfu-next)
@@ -396,11 +450,6 @@ As far as I can tell, there are two primary options for in-buffer completion: co
   		("M-<backspace>" . backward-kill-word)
   		("C-<backspace>" . backward-kill-word)
           ("ESC" . corfu-quit)))
-#+end_src
-
-I want completion in programming buffers:
-#+begin_src emacs-lisp
-  (global-corfu-mode)
 #+end_src
 
 I also want to delay the completion a little bit, instead of it popping up immediately. I have this code set up to add a time delay of 0.2 seconds; however, the corfu documentation states that this can create lag, so I’ve commented it out for now.
@@ -435,6 +484,12 @@ I’m using org-modern to improve the ui on org-mode documents. I haven’t cust
 #+begin_src emacs-lisp
   (package-install 'org-modern)
   (with-eval-after-load 'org (global-org-modern-mode))
+#+end_src
+
+I want org-modern to ignore tables, because it conflicts with valign.
+
+#+begin_src emacs-lisp
+  (setq org-modern-table nil)
 #+end_src
 
 I also want my documents centered when on a larger screen, so I’ll use Olivetti.
@@ -541,7 +596,13 @@ I’ll want to create some custom capture templates at some point, so I’ll ove
     					  "#+title: ${title}\n")
     		  :unnarrowed t
   		  :empty-lines 1
-  		  )))
+  		  )
+  		 ("p" "physics" plain "%?"
+    			 :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
+    						 "#+startup: latexpreview\n#+title: ${title}\n")
+    			 :unnarrowed t
+  			 :empty-lines 1
+  			 )))
 #+end_src
 ** Roam Dailies
 All daily roam notes should be stored in the /daily subfolder:
@@ -549,7 +610,7 @@ All daily roam notes should be stored in the /daily subfolder:
   (setq org-roam-dailies-directory "daily/")
 #+end_src
 
-I want two capture templates. The first is copied directly from the documentation, and consists solely of a single headline. The second is for journal entries, and is therefore its own node.
+I want two capture templates. The first is copied directly from the documentation, and consists solely of a single headline. The second is for journal entries, and is therefore its own node. Journal id is 04086C07-D098-4447-9999-43E974375A32
 #+begin_src emacs-lisp
   (setq org-roam-dailies-capture-templates
       '(("d" "default" plain
@@ -590,12 +651,28 @@ One great thing about org mode is that you can have a large document but hide th
   	(interactive)
   	(org-shifttab 1)
   	(org-fold-reveal)
+  	(message "")
   	)
 #+end_src
 
 I want this bound to C-c C-h in org mode.
 #+begin_src emacs-lisp
   (define-key org-mode-map (kbd "C-c C-h") #'org-fold-all-reveal)
+#+end_src
+
+** Tables
+I’m noticing that table alignment fails when using things like previewed latex. I’ll try to fix this with valign.
+#+begin_src emacs-lisp
+  (use-package valign
+  	:hook (org-mode . valign-mode)
+  	:config (setq valign-fancy-bar t))
+#+end_src
+
+** Babel
+In order to use org mode’s excellent Babel feature, I need to include the languages I want to use here:
+#+begin_src emacs-lisp
+  (org-babel-do-load-languages
+  	'org-babel-load-languages '((python . t)))
 #+end_src
 
 * Programming
@@ -631,6 +708,12 @@ I want to use Treemacs with lsp-mode:
   (use-package lsp-treemacs :commands lsp-treemacs-errors-list)
   (require 'lsp-treemacs)
   (lsp-treemacs-sync-mode 1)
+#+end_src
+
+Here I’ll change some timings around:
+#+begin_src emacs-lisp
+  (setq lsp-ui-doc-delay 0.85)
+  (setq lsp-idle-delay 0)
 #+end_src
 
 ** Language Servers
@@ -692,7 +775,7 @@ I want indentation lines to be displayed, so I’ll use the highlight-indent-gui
 #+end_src
 
 I’m a proud tabs user. We want to use tabs whenever possible:
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (setq-default indent-tabs-mode t)
 
   ;; idk if it’s necessary, but just to be extra sure:
@@ -700,13 +783,13 @@ I’m a proud tabs user. We want to use tabs whenever possible:
 #+end_src
 
 I want a tab size of 4:
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (setq-default tab-width 4)
   (setq-default standard-indent 4)
 #+end_src
 
 And I want to use tabs for every mode:
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (setq js-indent-level 4
       typescript-indent-level 4
   	python-indent-offset 4
@@ -729,6 +812,15 @@ I want electric pair mode enabled whenever I’m programming, but only then:
   (add-hook 'prog-mode-hook 'electric-pair-local-mode)
 #+end_src
 
+** Python
+Although I don’t frequently use python, I’ll try out the python IDE package elpy:
+#+begin_src emacs-lisp :tangle no
+  (use-package elpy
+  	:ensure t
+  	:init
+  	(elpy-enable))
+#+end_src
+
 * Projects
 ** Web Server
 I often want to start a server to preview a web project. I’ll use a custom function to do this, using projectile. I’ve bound this to C-c C-p w, which is the projectile prefix + w.
@@ -739,7 +831,7 @@ I often want to start a server to preview a web project. I’ll use a custom fun
       (interactive)
       (projectile-run-async-shell-command-in-root "python3 -m http.server"))
 
-  (define-key projectile-mode-map (kbd "C-c C-p w") #'start-web-server-in-project)
+  (define-key projectile-mode-map (kbd "C-c p w") #'start-web-server-in-project)
 #+end_src
 ** Treemacs
 Treemacs is a package which creates a buffer displaying the file structure of the current project.
@@ -875,7 +967,7 @@ Now I have a function to create a buffer and run the previous command:
               (bendomine/create-splash-screen))
 
           (switch-to-buffer new-buffer)
-          (if (or centaur-tabs-mode centaur-tabs-local-mode) (centaur-tabs-local-mode))
+          (when (bound-and-true-p centaur-tabs-mode) (if (or centaur-tabs-mode centaur-tabs-local-mode) (centaur-tabs-local-mode)))
           (message "")))
 #+end_src
 
