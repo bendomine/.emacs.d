@@ -813,12 +813,40 @@ I want electric pair mode enabled whenever I’m programming, but only then:
 #+end_src
 
 ** Python
-Although I don’t frequently use python, I’ll try out the python IDE package elpy:
++Although I don’t frequently use python, I’ll try out the python IDE package elpy:+
 #+begin_src emacs-lisp :tangle no
   (use-package elpy
   	:ensure t
   	:init
   	(elpy-enable))
+#+end_src
+
+Emacs is better than Jupyter notebooks, so I’ve implemented a helper function for Babel that executes all the code in a given session in order. This first function gets the session name for a given code block.
+#+begin_src emacs-lisp
+  (defun my/org-babel-get-session ()
+  "Return the name of the current Babel source block session."
+  (interactive)
+  (cdr (assoc :session (nth 2 (org-babel-get-src-block-info)))))
+#+end_src
+
+This second function is a modified version of org-babel-execute-buffer, which tests each source block against the session name the function is called from.
+#+begin_src emacs-lisp
+  (defun my/org-babel-execute-session (&optional arg)
+    "Execute all source blocks in the buffer, belonging to the current session."
+    (interactive)
+    (let ((current-session (my/org-babel-get-session)))
+      (org-babel-eval-wipe-error-buffer)
+      (org-save-outline-visibility t
+        (org-babel-map-executables nil
+  	(if (and
+  	     (my/org-babel-get-session)
+  	     (string= current-session (my/org-babel-get-session))
+  	     (not (string= (my/org-babel-get-session) "none")))
+  	    (if (org-element-type-p
+  		 (org-element-context) '(babel-call inline-babel-call))
+  		(org-babel-lob-execute-maybe)
+                (org-babel-execute-src-block arg))))))
+    (org-display-inline-images))
 #+end_src
 
 * Projects

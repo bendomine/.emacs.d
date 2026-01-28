@@ -435,6 +435,27 @@
 
 (add-hook 'prog-mode-hook 'electric-pair-local-mode)
 
+(defun my/org-babel-get-session ()
+"Return the name of the current Babel source block session."
+(interactive)
+(cdr (assoc :session (nth 2 (org-babel-get-src-block-info)))))
+
+(defun my/org-babel-execute-session (&optional arg)
+  "Execute all source blocks in the buffer, belonging to the current session."
+  (interactive)
+  (let ((current-session (my/org-babel-get-session)))
+    (org-babel-eval-wipe-error-buffer)
+    (org-save-outline-visibility t
+      (org-babel-map-executables nil
+	(if (and
+	     (my/org-babel-get-session)
+	     (string= current-session (my/org-babel-get-session))
+	     (not (string= (my/org-babel-get-session) "none")))
+	    (if (org-element-type-p
+		 (org-element-context) '(babel-call inline-babel-call))
+		(org-babel-lob-execute-maybe)
+              (org-babel-execute-src-block arg)))))))
+
 (require 'projectile)
 (defun start-web-server-in-project ()
     "Start a simple Python web server in root directory of current project."

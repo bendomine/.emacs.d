@@ -5,7 +5,8 @@
  ;; If there is more than one, they won't work right.
  '(cursor-type 'bar)
  '(custom-safe-themes
-   '("dd4582661a1c6b865a33b89312c97a13a3885dc95992e2e5fc57456b4c545176"
+   '("8c7e832be864674c220f9a9361c851917a93f921fedb7717b1b5ece47690c098"
+     "dd4582661a1c6b865a33b89312c97a13a3885dc95992e2e5fc57456b4c545176"
      default))
  '(electric-quote-mode t)
  '(fringe-mode '(1 . 1) nil (fringe))
