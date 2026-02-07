@@ -240,14 +240,14 @@
     (completion-category-defaults nil)
     (completion-category-overrides '((file (styles partial-completion)))))
 
-(use-package consult
-        :hook (completion-list-mode . consult-preview-at-point-mode)
-        :custom
-        (consult-preview-key nil)
-        (consult-narrow-key nil)
-        :config
-        (consult-customize consult-theme consult-line consult-line-at-point :preview-key '(:debounce 0.2 any))
-        )
+(use-package consult)
+(use-package consult-projectile
+  :after (consult projectile))
+
+(global-set-key (kbd "C-s") #'consult-line)
+(global-set-key (kbd "C-x b") #'consult-buffer)
+(global-set-key (kbd "C-M-l") #'consult-imenu)
+(global-set-key (kbd "M-y") #'consult-yank-pop)
 
 (package-install 'org-modern)
 (with-eval-after-load 'org (global-org-modern-mode))
@@ -402,7 +402,9 @@
 ;; 	(setq lsp-clients-clangd-executable "/opt/homebrew/bin/clangd"))
 
 (use-package emmet-mode
-	:hook (html-mode css-mode web-mode))
+	:hook (html-mode css-mode web-mode)
+	:config
+	(keymap-set emmet-mode-keymap "TAB" #'emmet-expand-line))
 
 (use-package treesit-auto
   :custom
@@ -410,6 +412,8 @@
   :config
   (treesit-auto-add-to-auto-mode-alist 'all)
   (global-treesit-auto-mode))
+
+(add-hook 'prog-mode-hook #'hl-line-mode)
 
 (use-package flycheck
       :config
@@ -454,7 +458,12 @@
 	    (if (org-element-type-p
 		 (org-element-context) '(babel-call inline-babel-call))
 		(org-babel-lob-execute-maybe)
-              (org-babel-execute-src-block arg)))))))
+              (org-babel-execute-src-block arg))))))
+  (org-display-inline-images))
+
+(keymap-set org-babel-map "C-v" 'my/org-babel-execute-session)
+
+
 
 (require 'projectile)
 (defun start-web-server-in-project ()
@@ -546,6 +555,7 @@
 
 	(insert-text-button "Open config file" 'action (lambda (_) (config)) 'follow-link t)
 	(center-line) (insert "\n\n")
+	;; (local-set-key (kbd "c") (lambda (_) (config)))
 
 	(insert-text-button "Create org document" 'action (lambda (_)
                                                           (let ((buffer (generate-new-buffer "New org document")))
@@ -553,6 +563,7 @@
                                                               (org-mode))) 'follow-link t)
 	(center-line) (insert "\n\n")
 	(insert-text-button "New journal entry" 'action (lambda (_) (org-roam-dailies-capture-today nil "j")) 'follow-link t)
+	;; (local-set-key (kbd "j") (lambda (_) (org-roam-dailies-capture-today nil "j")))
 	
 	(center-line) (insert "\n")
 
@@ -578,6 +589,8 @@
 
 (add-hook 'window-setup-hook (lambda ()
                                  (run-at-time "0.3 sec" nil #'bendomine/splash-screen)))
+
+
 
 (global-set-key (kbd "C-<wheel-up>") nil)
 (global-set-key (kbd "C-<wheel-down>") nil)

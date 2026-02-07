@@ -467,7 +467,7 @@ I use orderless to give completions fuzzy matching. This particular bit of code 
 #+end_src
 ** Searching
 I’ll use Consult for better searching. When I say "use" I don’t actually mean use, because I haven’t figured it out yet. However, I’ll install it for now.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
 (use-package consult
         :hook (completion-list-mode . consult-preview-at-point-mode)
         :custom
@@ -476,6 +476,21 @@ I’ll use Consult for better searching. When I say "use" I don’t actually mea
         :config
         (consult-customize consult-theme consult-line consult-line-at-point :preview-key '(:debounce 0.2 any))
         )
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package consult)
+  (use-package consult-projectile
+    :after (consult projectile))
+#+end_src
+
+I’ll replace some basic keybindings with their equivalent consult commands:
+
+#+begin_src emacs-lisp
+  (global-set-key (kbd "C-s") #'consult-line)
+  (global-set-key (kbd "C-x b") #'consult-buffer)
+  (global-set-key (kbd "C-M-l") #'consult-imenu)
+  (global-set-key (kbd "M-y") #'consult-yank-pop)
 #+end_src
 
 * Org Mode
@@ -727,7 +742,9 @@ For c++, I want to use clangd. I’m going to assume this is already installed v
 For quick completions, I’ll use emmet-mode:
 #+begin_src emacs-lisp
   (use-package emmet-mode
-  	:hook (html-mode css-mode web-mode))
+  	:hook (html-mode css-mode web-mode)
+  	:config
+  	(keymap-set emmet-mode-keymap "TAB" #'emmet-expand-line))
 #+end_src
 
 ** Syntax Highlighting
@@ -740,6 +757,13 @@ I’ll use tree-sitter for syntax highlighting. Tree-sitter is included with Ema
     (treesit-auto-add-to-auto-mode-alist 'all)
     (global-treesit-auto-mode))
 #+end_src
+** Highlight Current Line
+Emacs has a built-in minor mode to highlight the current line, which I want to be active in all programming modes.
+
+#+begin_src emacs-lisp
+  (add-hook 'prog-mode-hook #'hl-line-mode)
+#+end_src
+
 ** Linting
 I’ll use flycheck for syntax linting.
 #+begin_src emacs-lisp
@@ -847,6 +871,17 @@ This second function is a modified version of org-babel-execute-buffer, which te
   		(org-babel-lob-execute-maybe)
                 (org-babel-execute-src-block arg))))))
     (org-display-inline-images))
+#+end_src
+
+I’m going to want this to be a pretty easy command to execute quickly.
+#+begin_src emacs-lisp
+  (keymap-set org-babel-map "C-v" 'my/org-babel-execute-session)
+#+end_src
+
+** Emmet Mode
+I want to rebind Emmet mode’s expand-current-line function to TAB instead of C-j.
+#+begin_src emacs-lisp
+  
 #+end_src
 
 * Projects
@@ -965,6 +1000,7 @@ Next, I’ll have a function for turning a given buffer into the splash screen:
 
   	(insert-text-button "Open config file" 'action (lambda (_) (config)) 'follow-link t)
   	(center-line) (insert "\n\n")
+  	;; (local-set-key (kbd "c") (lambda (_) (config)))
 
   	(insert-text-button "Create org document" 'action (lambda (_)
                                                             (let ((buffer (generate-new-buffer "New org document")))
@@ -972,6 +1008,7 @@ Next, I’ll have a function for turning a given buffer into the splash screen:
                                                                 (org-mode))) 'follow-link t)
   	(center-line) (insert "\n\n")
   	(insert-text-button "New journal entry" 'action (lambda (_) (org-roam-dailies-capture-today nil "j")) 'follow-link t)
+  	;; (local-set-key (kbd "j") (lambda (_) (org-roam-dailies-capture-today nil "j")))
   	
   	(center-line) (insert "\n")
 
@@ -1004,6 +1041,12 @@ Finally, I’ll display that splash screen after load, with a tiny delay to ensu
   (add-hook 'window-setup-hook (lambda ()
                                    (run-at-time "0.3 sec" nil #'bendomine/splash-screen)))
 #+end_src
+
+I also want to add some local keybindings to quickly choose menu items.
+#+begin_src emacs-lisp
+
+#+end_src
+
 ** Preventing Messages on C-scroll
 This is kind of stupid, but I sometimes have the C modifier key held down when scrolling, and I don’t want that to be special behavior:
 #+begin_src emacs-lisp

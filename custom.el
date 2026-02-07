@@ -22,7 +22,13 @@
  '(org-preview-latex-default-process 'dvisvgm)
  '(org-return-follows-link t)
  '(org-support-shift-select t)
- '(package-selected-packages nil)
+ '(package-selected-packages
+   '(auctex cdlatex centaur-tabs consult consult-projectile corfu
+	    doom-modeline doom-themes emmet-mode exec-path-from-shell
+	    flycheck highlight-indent-guides lsp-treemacs lsp-ui magit
+	    marginalia multiple-cursors olivetti orderless org-modern
+	    org-roam-ui treemacs-projectile treesit-auto valign
+	    vertico-posframe yasnippet))
  '(ring-bell-function 'ignore)
  '(scroll-bar-mode nil)
  '(send-mail-function 'mailclient-send-it)
