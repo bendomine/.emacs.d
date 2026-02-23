@@ -79,8 +79,7 @@ I primarily use Mac, so I want most keybindings to use the command key. So, I’
 
 This means that I need to resolve the keyboard conflicts that arise from mac taking over certain commands, such as command + space.
 #+begin_src emacs-lisp
-  (if (eq system-type 'darwin)
-      (global-set-key (kbd "C-o") 'set-mark-command))
+  (global-set-key (kbd "C-o") 'set-mark-command)
 #+end_src
 ** Undo, Redo
 I want to use C-/ for commenting, so I’ll bind undo to C-z like normal. I don’t need to use suspend-frame much at all, so this should be acceptable.
@@ -88,7 +87,6 @@ I want to use C-/ for commenting, so I’ll bind undo to C-z like normal. I don�
   (global-set-key (kbd "C-z") 'undo)
   (global-set-key (kbd "C-S-z") 'undo-redo)
 #+end_src
-
 * UI
 ** Scrolling
 I want precision pixel scrolling, meaning that when I use the scroll wheel I want smooth scrolling instead of line-by-line scrolling. This obviously only has an impact in GUI mode. Also, it can cause lag depending on the machine and version/port of emacs!
@@ -106,6 +104,7 @@ I’m using nerd-icons for doom-modeline and other icon-requiring packages.
 #+end_src
 
 Note: if this doesn’t work on a new computer, run nerd-icons-install-fonts.
+
 ** Themes
 I’ll use doom-themes because of its broad selection. Screenshots of some of these themes can be found [[https://github.com/doomemacs/themes/tree/screenshots][here]].
 
@@ -134,7 +133,7 @@ I want the active line number in line number mode to be highlighted more brightl
 #+end_src
 
 ** Modeline
-So far, my modeline is just a mostly uncustomized doom-modeline. The documentation options can be found at [[https://github.com/seagle0128/doom-modeline][the github repo]].
+I’m using doom-modeline. The customization options can be found at [[https://github.com/seagle0128/doom-modeline][the github repo]].
 #+begin_src emacs-lisp
   (use-package doom-modeline
       :ensure t
@@ -166,41 +165,6 @@ Just for fun, I’ll also enable the battery indicator, updating every 30 second
   (display-battery-mode +1)
 #+end_src
 
-** Tabs
-I currently use centaur-tabs, though I’m not sure how much I like it.
-#+begin_src emacs-lisp :tangle no
-  (use-package centaur-tabs
-      :demand
-      :config
-      (set-face-attribute 'centaur-tabs-default nil :height 5)
-      (centaur-tabs-mode -1)
-      )
-#+end_src
-
-I want to display the icon for the current buffer in each tab:
-#+begin_src emacs-lisp :tangle no
-  (setq centaur-tabs-set-icons t)
-  (setq centaur-tabs-icon-type 'nerd-icons)
-#+end_src
-
-And a few other graphical things. I want a marker for unsaved changes, no new tab button, bar-style tabs, and a highlight bar to the left. Finally, we’ll set the height to 5.
-#+begin_src emacs-lisp :tangle no
-  (setq centaur-tabs-style "bar")
-  (setq centaur-tabs-set-modified-marker t)
-  (setq centaur-tabs-set-bar 'left)
-  (set-face-attribute 'centaur-tabs-default nil :height 5)
-#+end_src
-
-Next, I need a tab grouping function. I only want tabs for buffers that are part of a project, and then I want the tabs to be grouped by that project. I’ll group by the projectile project:
-#+begin_src emacs-lisp :tangle no
-  (centaur-tabs-group-by-projectile-project)
-#+end_src
-
-At some point, I’ll add functionality to hide the tab bar when in a buffer that isn’t part of a project. For now, I’ll be content with hiding tabs in special mode buffers:
-#+begin_src emacs-lisp :tangle no
-  (add-hook 'special-mode-hook 'centaur-tabs-local-mode)
-#+end_src
-
 ** Tab Bar
 I want to move away from centaur-tabs, as it’s a very buggy and generally annoying package. Instead, I’ll customize the built-in tab bar to work a little better.
 #+begin_src emacs-lisp
@@ -209,7 +173,7 @@ I want to move away from centaur-tabs, as it’s a very buggy and generally anno
   	))
 #+end_src
 
-The above face adds an underline, but the box face messes with the underline on the close button for some reason.
+The above face adds an underline, but the box face messes with the underline on the close button for some reason. SETUP TAB BAR: replace the file path below with the file path found in ~tab-bar-close-button~ without any customization.
 
 #+begin_src emacs-lisp
   (add-hook 'tab-bar-mode-hook (lambda () (setq tab-bar-close-button
@@ -390,7 +354,7 @@ For snippets, particularly in LaTeX and HTML, I’ll use yasnippet:
   	:hook (prog-mode . yas-minor-mode)
   	:config
   	(yas-reload-all))
-  (yas-global-mode)
+  (yas-global-mode -1)
 #+end_src
 ** File Saving
 Emacs defaults to adding a newline at the end of the file on saving. I dislike this when editing, even though having one is conventional. At some point, I’ll probably add a function to add the newline, save, and then remove it; for now, though, I’ll just disable the newline.

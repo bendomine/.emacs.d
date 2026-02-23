@@ -1,0 +1,14 @@
+#+title: New Device Instructions
+#+author: Ben Domine
+
+* Overview
+When installing my emacs configuration onto a new computer, there are a few extra steps that need to be taken in order to get everything working properly. This document will enumerate those steps, so that I don’t forget to get everything set up.
+
+* Fonts
+I use nerd-icons for icon support, which requires a font that supports icons. If such a font is not already installed, run ~M-x nerd-icons-install-fonts~.
+
+* Themes
+The doom-themes package never seems to work with use-package. If so, run ~M-x package-install~ and choose ~doom-themes~. Then restart emacs and trust the theme.
+
+* Tab Bar
+The file path in the tab bar setup needs to be changed. Search for "SETUP TAB BAR" in config.org to find the specific code block. Specifically, it needs to be set to the path to the close button svg, which can be found by running emacs with no config (-q) and getting the value of the variable ~tab-bar-close-button~ once tab-bar-mode is enabled.

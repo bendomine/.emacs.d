@@ -191,7 +191,7 @@
 	:hook (prog-mode . yas-minor-mode)
 	:config
 	(yas-reload-all))
-(yas-global-mode)
+(yas-global-mode -1)
 
 (setq require-final-newline nil)
 (setq mode-require-final-newline nil)
