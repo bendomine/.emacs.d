@@ -21,6 +21,7 @@
  '(org-highlight-latex-and-related '(native latex script entities))
  '(org-preview-latex-default-process 'dvisvgm)
  '(org-return-follows-link t)
+ '(org-safe-remote-resources '("\\`https://imgs\\.xkcd\\.com\\(?:/\\|\\'\\)"))
  '(org-support-shift-select t)
  '(package-selected-packages
    '(auctex cdlatex centaur-tabs consult consult-projectile corfu

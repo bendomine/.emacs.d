@@ -942,7 +942,7 @@ Next, I’ll have a function for turning a given buffer into the splash screen:
 
   	(let* (
                 (height (- (window-body-height nil) 1))
-                (offset 20)
+                (offset 10)
                 (vertical-padding (- (/ height 2) offset)))
   		(insert-char ?\n vertical-padding))
 

@@ -36,8 +36,7 @@
 (setq mac-command-modifier 'control)
 (setq mac-control-modifier 'super)
 
-(if (eq system-type 'darwin)
-    (global-set-key (kbd "C-o") 'set-mark-command))
+(global-set-key (kbd "C-o") 'set-mark-command)
 
 (global-set-key (kbd "C-z") 'undo)
 (global-set-key (kbd "C-S-z") 'undo-redo)
@@ -533,7 +532,7 @@
 
 	(let* (
               (height (- (window-body-height nil) 1))
-              (offset 20)
+              (offset 10)
               (vertical-padding (- (/ height 2) offset)))
 		(insert-char ?\n vertical-padding))
 
