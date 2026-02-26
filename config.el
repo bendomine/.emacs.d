@@ -316,18 +316,25 @@
 		 (window-height . fit-window-to-buffer)))
 
 (setq org-roam-capture-templates
-  	'(("d" "default" plain "%?"
-  		  :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
-  					  "#+title: ${title}\n")
-  		  :unnarrowed t
-		  :empty-lines 1
-		  )
-		 ("p" "physics" plain "%?"
-  			 :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
-  						 "#+startup: latexpreview\n#+title: ${title}\n")
-  			 :unnarrowed t
-			 :empty-lines 1
-			 )))
+      '(("d" "default" plain "%?"
+  	 :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
+  			    "#+title: ${title}\n")
+  	 :unnarrowed t
+	 :empty-lines 1
+	 )
+	("p" "physics" plain "%?"
+  	 :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
+  			    "#+startup: latexpreview\n#+filetags: :physics:\n#+title: ${title}")
+  	 :unnarrowed t
+	 )
+	("m" "math" plain "%?"
+  	 :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
+  			    "#+startup: latexpreview\n#+filetags: :math:\n#+title: ${title}")
+  	 :unnarrowed t
+	 )))
+
+(setq org-roam-node-display-template
+      (concat "${title:*} " (propertize "${tags:10}" 'face 'org-tag)))
 
 (setq org-roam-dailies-directory "daily/")
 

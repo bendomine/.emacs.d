@@ -570,19 +570,30 @@ The org-roam author recommends displaying the org-roam buffer as a separate wind
 I’ll want to create some custom capture templates at some point, so I’ll override the templates variable, currently only providing the default template:
 #+begin_src emacs-lisp
   (setq org-roam-capture-templates
-    	'(("d" "default" plain "%?"
-    		  :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
-    					  "#+title: ${title}\n")
-    		  :unnarrowed t
-  		  :empty-lines 1
-  		  )
-  		 ("p" "physics" plain "%?"
-    			 :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
-    						 "#+startup: latexpreview\n#+title: ${title}\n")
-    			 :unnarrowed t
-  			 :empty-lines 1
-  			 )))
+        '(("d" "default" plain "%?"
+    	 :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
+    			    "#+title: ${title}\n")
+    	 :unnarrowed t
+  	 :empty-lines 1
+  	 )
+  	("p" "physics" plain "%?"
+    	 :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
+    			    "#+startup: latexpreview\n#+filetags: :physics:\n#+title: ${title}")
+    	 :unnarrowed t
+  	 )
+  	("m" "math" plain "%?"
+    	 :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
+    			    "#+startup: latexpreview\n#+filetags: :math:\n#+title: ${title}")
+    	 :unnarrowed t
+  	 )))
 #+end_src
+
+I also want to use file tags to distinguish between subjects:
+#+begin_src emacs-lisp
+  (setq org-roam-node-display-template
+        (concat "${title:*} " (propertize "${tags:10}" 'face 'org-tag)))
+#+end_src
+
 ** Roam Dailies
 All daily roam notes should be stored in the /daily subfolder:
 #+begin_src emacs-lisp
