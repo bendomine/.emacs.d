@@ -354,7 +354,7 @@ For snippets, particularly in LaTeX and HTML, I’ll use yasnippet:
   	:hook (prog-mode . yas-minor-mode)
   	:config
   	(yas-reload-all))
-  (yas-global-mode -1)
+  (yas-global-mode 1)
 #+end_src
 ** File Saving
 Emacs defaults to adding a newline at the end of the file on saving. I dislike this when editing, even though having one is conventional. At some point, I’ll probably add a function to add the newline, save, and then remove it; for now, though, I’ll just disable the newline.
@@ -427,7 +427,7 @@ I use orderless to give completions fuzzy matching. This particular bit of code 
       :custom
       (completion-styles '(orderless basic))
       (completion-category-defaults nil)
-      (completion-category-overrides '((file (styles partial-completion)))))
+      (completion-category-overrides '((file (styles basic partial-completion)))))
 #+end_src
 ** Searching
 I’ll use Consult for better searching. When I say "use" I don’t actually mean use, because I haven’t figured it out yet. However, I’ll install it for now.
@@ -456,6 +456,33 @@ I’ll replace some basic keybindings with their equivalent consult commands:
   (global-set-key (kbd "C-M-l") #'consult-imenu)
   (global-set-key (kbd "M-y") #'consult-yank-pop)
 #+end_src
+** Sorting
+In order to better sort lists of options, I’ll use prescient.
+#+begin_src emacs-lisp
+  (use-package prescient
+    :config
+    (prescient-persist-mode 1))
+#+end_src
+
+Integration with vertico:
+#+begin_src emacs-lisp
+  (use-package vertico-prescient
+    :after vertico
+    :config
+    (setq vertico-prescient-enable-filtering nil)
+    (vertico-prescient-mode 1))
+#+end_src
+
+Integration with corfu:
+#+begin_src emacs-lisp
+  (use-package corfu-prescient
+    :after corfu
+    :config
+    (setq corfu-prescient-enable-filtering nil)
+    (corfu-prescient-mode 1))
+#+end_src
+
+Note that currently, I’m still using orderless for filtering, and just using prescient for the sorting.
 
 * Org Mode
 ** UI Improvements
@@ -667,43 +694,18 @@ In order to use org mode’s excellent Babel feature, I need to include the lang
 
 * Programming
 ** Language Server Protocol Client
-I previously used the built-in Eglot for language server protocol support, but it’s been too slow for my purposes. I’m therefore switching to the lsp-mode package. Documentation for this package can be found [[https://emacs-lsp.github.io/lsp-mode/][here]].
+I want to use the built-in eglot for LSP stuff.
 #+begin_src emacs-lisp
-  (use-package lsp-mode
-  	:init
-  	(setq lsp-keymap-prefix "C-c l")
-  	:hook (
-  			  (python-mode . lsp)
-  			  (javascript-mode . lsp)
-  			  (lsp-mode . lsp-enable-which-key-integration))
-  	:commands lsp
-  	:custom
-  	(lsp-enable-snippet t)
-  	(lsp-completion-provider :none))
-#+end_src
-
-I also want the ui integrations of lsp-mode, which adds nice features like sideline, peek, and documentation.
-#+begin_src emacs-lisp
-  (use-package lsp-ui :commands lsp-ui-mode)
-#+end_src
-
-The website also recommends adding the lsp-mode folders to the load path:
-#+begin_src emacs-lisp
-  (add-to-list 'load-path (expand-file-name "lib/lsp-mode" user-emacs-directory))
-  (add-to-list 'load-path (expand-file-name "lib/lsp-mode/clients" user-emacs-directory))
-#+end_src
-
-I want to use Treemacs with lsp-mode:
-#+begin_src emacs-lisp
-  (use-package lsp-treemacs :commands lsp-treemacs-errors-list)
-  (require 'lsp-treemacs)
-  (lsp-treemacs-sync-mode 1)
-#+end_src
-
-Here I’ll change some timings around:
-#+begin_src emacs-lisp
-  (setq lsp-ui-doc-delay 0.85)
-  (setq lsp-idle-delay 0)
+  (use-package eglot
+    :ensure t
+    :hook ((python-ts-mode . eglot-ensure)
+           (c-ts-mode      . eglot-ensure)
+           (c++-ts-mode    . eglot-ensure)
+           (js-ts-mode     . eglot-ensure)
+           (java-ts-mode   . eglot-ensure))
+    :config
+    (add-to-list 'eglot-server-programs
+                 '(html-mode . ("vscode-html-language-server" "--stdio"))))
 #+end_src
 
 ** Language Servers
@@ -723,15 +725,37 @@ For quick completions, I’ll use emmet-mode:
 #+end_src
 
 ** Syntax Highlighting
-I’ll use tree-sitter for syntax highlighting. Tree-sitter is included with Emacs, but in order to use it in every compatible buffer I’ll use treesit-auto:
+I’ll use tree-sitter for completion. It’s included with emacs now, but this config should allow me to set the sources for my languages.
 #+begin_src emacs-lisp
-  (use-package treesit-auto
-    :custom
-    (treesit-auto-install 'prompt)
+  (use-package treesit
+    ;; No :ensure t because it's built into Emacs 30
+    :ensure nil
     :config
-    (treesit-auto-add-to-auto-mode-alist 'all)
-    (global-treesit-auto-mode))
+    (setq treesit-language-source-alist
+          '((python "https://github.com/tree-sitter/tree-sitter-python")
+            (javascript "https://github.com/tree-sitter/tree-sitter-javascript")
+            (cpp "https://github.com/tree-sitter/tree-sitter-cpp")
+            (c "https://github.com/tree-sitter/tree-sitter-c")
+            (java "https://github.com/tree-sitter/tree-sitter-java")
+            (css "https://github.com/tree-sitter/tree-sitter-css")
+            (html "https://github.com/tree-sitter/tree-sitter-html"))))
 #+end_src
+
+I also want to remap most programming modes to use their treesit counterparts:
+#+begin_src emacs-lisp
+  ;; Remap standard modes to Tree-sitter modes
+  (setq major-mode-remap-alist
+        '((python-mode     . python-ts-mode)
+          (c-mode          . c-ts-mode)
+          (c++-mode        . c++-ts-mode)
+          (js-mode         . js-ts-mode)
+  	(javascript-mode . js-ts-mode)
+          (java-mode       . java-ts-mode)
+          (css-mode        . css-ts-mode)
+          (html-mode       . html-ts-mode)
+          (typescript-mode . typescript-ts-mode)))
+#+end_src
+
 ** Highlight Current Line
 Emacs has a built-in minor mode to highlight the current line, which I want to be active in all programming modes.
 
@@ -740,21 +764,13 @@ Emacs has a built-in minor mode to highlight the current line, which I want to b
 #+end_src
 
 ** Linting
-I’ll use flycheck for syntax linting.
+I’ll use the built-in flymake package for linting. This should require minimal configuration. I will bind some keys to jump between errors.
 #+begin_src emacs-lisp
-  (use-package flycheck
-        :config
-        (add-hook 'prog-mode-hook 'flycheck-mode)
-        (add-hook 'after-init-hook #'global-flycheck-mode))
+  (use-package flymake
+    :bind (("M-n" . flymake-goto-next-error)  ; Move to next error
+           ("M-p" . flymake-goto-prev-error)) ; Move to previous error
+    :hook (prog-mode . flymake-mode))
 #+end_src
-
-One issue I’ve found is flycheck using old c++ language standards. This is an attempt to set them to 2011:
-#+begin_src emacs-lisp
-  (add-hook 'c++-mode-hook (lambda () (setq flycheck-gcc-language-standard "c++11" flycheck-clang-language-standard "c++11")))
-  (add-hook 'c++-mode-hook (lambda () (setq flycheck-gcc-language-standard "c++11")))
-  (add-hook 'c++-mode-hook (lambda () (setq flycheck-clang-language-standard "c++11")))
-#+end_src
-Unfortunately, I don’t think it’s a successful attempt.
 
 ** Version Control
 For help with version control, I’ll use magit. I currently don’t have this customized at all.
@@ -773,29 +789,6 @@ I want indentation lines to be displayed, so I’ll use the highlight-indent-gui
   	(highlight-indent-guides-auto-character-face-perc 80))
 #+end_src
 
-I’m a proud tabs user. We want to use tabs whenever possible:
-#+begin_src emacs-lisp :tangle no
-  (setq-default indent-tabs-mode t)
-
-  ;; idk if it’s necessary, but just to be extra sure:
-  (add-hook 'prog-mode-hook (lambda () (setq indent-tabs-mode t)))
-#+end_src
-
-I want a tab size of 4:
-#+begin_src emacs-lisp :tangle no
-  (setq-default tab-width 4)
-  (setq-default standard-indent 4)
-#+end_src
-
-And I want to use tabs for every mode:
-#+begin_src emacs-lisp :tangle no
-  (setq js-indent-level 4
-      typescript-indent-level 4
-  	python-indent-offset 4
-  	c-basic-offset 4
-  	lisp-indent-offset 4)
-#+end_src
-
 ** Line numbers
 I want line numbers when programming. The last two lines here make sure the line number bar takes up a constant amount of space, preventing weird shifts when scrolling.
 #+begin_src emacs-lisp
@@ -805,21 +798,22 @@ I want line numbers when programming. The last two lines here make sure the line
 
 #+end_src
 
-** Electric Pair Mode
-I want electric pair mode enabled whenever I’m programming, but only then:
+** Parentheses
+I’ve historically just used the built-in electric-pair-mode.
 #+begin_src emacs-lisp
-  (add-hook 'prog-mode-hook 'electric-pair-local-mode)
+  ;; (add-hook 'prog-mode-hook 'electric-pair-local-mode)
+#+end_src
+
+However, I’m going to try smartparens instead:
+#+begin_src emacs-lisp
+  (use-package smartparens
+    :ensure smartparens
+    :hook (prog-mode text-mode markdown-mode)
+    :config
+    (require 'smartparens-config))
 #+end_src
 
 ** Python
-+Although I don’t frequently use python, I’ll try out the python IDE package elpy:+
-#+begin_src emacs-lisp :tangle no
-  (use-package elpy
-  	:ensure t
-  	:init
-  	(elpy-enable))
-#+end_src
-
 Emacs is better than Jupyter notebooks, so I’ve implemented a helper function for Babel that executes all the code in a given session in order. This first function gets the session name for a given code block.
 #+begin_src emacs-lisp
   (defun my/org-babel-get-session ()
@@ -851,12 +845,6 @@ This second function is a modified version of org-babel-execute-buffer, which te
 I’m going to want this to be a pretty easy command to execute quickly.
 #+begin_src emacs-lisp
   (keymap-set org-babel-map "C-v" 'my/org-babel-execute-session)
-#+end_src
-
-** Emmet Mode
-I want to rebind Emmet mode’s expand-current-line function to TAB instead of C-j.
-#+begin_src emacs-lisp
-  
 #+end_src
 
 * Projects

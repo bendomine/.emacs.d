@@ -8,9 +8,12 @@
    '("8c7e832be864674c220f9a9361c851917a93f921fedb7717b1b5ece47690c098"
      "dd4582661a1c6b865a33b89312c97a13a3885dc95992e2e5fc57456b4c545176"
      default))
+ '(display-battery-mode t)
+ '(display-time-mode t)
  '(electric-quote-mode t)
  '(fringe-mode '(1 . 1) nil (fringe))
  '(inhibit-startup-screen t)
+ '(org-agenda-files '("~/Documents/PHYS4011/Midterm/review.org"))
  '(org-babel-python-command "python3")
  '(org-confirm-babel-evaluate nil)
  '(org-format-latex-options
@@ -24,21 +27,24 @@
  '(org-safe-remote-resources '("\\`https://imgs\\.xkcd\\.com\\(?:/\\|\\'\\)"))
  '(org-support-shift-select t)
  '(package-selected-packages
-   '(auctex cdlatex centaur-tabs consult consult-projectile corfu
+   '(auctex cdlatex consult consult-projectile corfu corfu-prescient
 	    doom-modeline doom-themes emmet-mode exec-path-from-shell
-	    flycheck highlight-indent-guides lsp-treemacs lsp-ui magit
+	    flycheck highlight-indent-guides lsp-treemacs magit
 	    marginalia multiple-cursors olivetti orderless org-modern
-	    org-roam-ui treemacs-projectile treesit-auto valign
-	    vertico-posframe yasnippet))
+	    org-roam-ui prescient smartparens treemacs-projectile
+	    treesit valign vertico-posframe vertico-prescient
+	    yasnippet))
  '(ring-bell-function 'ignore)
  '(scroll-bar-mode nil)
  '(send-mail-function 'mailclient-send-it)
- '(tab-bar-new-tab-choice "*Splash Screen*"))
+ '(tab-bar-new-tab-choice "*Splash Screen*")
+ '(tool-bar-mode nil))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(default ((t (:family "JetBrainsMonoNL Nerd Font" :foundry "nil" :slant normal :weight regular :height 120 :width normal))))
  '(org-document-title ((t (:inherit default :weight bold :foreground "gray80" :height 1.6 :underline nil))))
  '(org-level-1 ((t (:inherit default :weight bold :foreground "gray80" :height 1.5))))
  '(org-level-2 ((t (:inherit default :weight bold :foreground "gray80" :height 1.3))))

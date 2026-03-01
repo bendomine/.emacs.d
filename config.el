@@ -190,7 +190,7 @@
 	:hook (prog-mode . yas-minor-mode)
 	:config
 	(yas-reload-all))
-(yas-global-mode -1)
+(yas-global-mode 1)
 
 (setq require-final-newline nil)
 (setq mode-require-final-newline nil)
@@ -237,7 +237,7 @@
     :custom
     (completion-styles '(orderless basic))
     (completion-category-defaults nil)
-    (completion-category-overrides '((file (styles partial-completion)))))
+    (completion-category-overrides '((file (styles basic partial-completion)))))
 
 (use-package consult)
 (use-package consult-projectile
@@ -247,6 +247,22 @@
 (global-set-key (kbd "C-x b") #'consult-buffer)
 (global-set-key (kbd "C-M-l") #'consult-imenu)
 (global-set-key (kbd "M-y") #'consult-yank-pop)
+
+(use-package prescient
+  :config
+  (prescient-persist-mode 1))
+
+(use-package vertico-prescient
+  :after vertico
+  :config
+  (setq vertico-prescient-enable-filtering nil)
+  (vertico-prescient-mode 1))
+
+(use-package corfu-prescient
+  :after corfu
+  :config
+  (setq corfu-prescient-enable-filtering nil)
+  (corfu-prescient-mode 1))
 
 (package-install 'org-modern)
 (with-eval-after-load 'org (global-org-modern-mode))
@@ -380,29 +396,16 @@
 (org-babel-do-load-languages
 	'org-babel-load-languages '((python . t)))
 
-(use-package lsp-mode
-	:init
-	(setq lsp-keymap-prefix "C-c l")
-	:hook (
-			  (python-mode . lsp)
-			  (javascript-mode . lsp)
-			  (lsp-mode . lsp-enable-which-key-integration))
-	:commands lsp
-	:custom
-	(lsp-enable-snippet t)
-	(lsp-completion-provider :none))
-
-(use-package lsp-ui :commands lsp-ui-mode)
-
-(add-to-list 'load-path (expand-file-name "lib/lsp-mode" user-emacs-directory))
-(add-to-list 'load-path (expand-file-name "lib/lsp-mode/clients" user-emacs-directory))
-
-(use-package lsp-treemacs :commands lsp-treemacs-errors-list)
-(require 'lsp-treemacs)
-(lsp-treemacs-sync-mode 1)
-
-(setq lsp-ui-doc-delay 0.85)
-(setq lsp-idle-delay 0)
+(use-package eglot
+  :ensure t
+  :hook ((python-ts-mode . eglot-ensure)
+         (c-ts-mode      . eglot-ensure)
+         (c++-ts-mode    . eglot-ensure)
+         (js-ts-mode     . eglot-ensure)
+         (java-ts-mode   . eglot-ensure))
+  :config
+  (add-to-list 'eglot-server-programs
+               '(html-mode . ("vscode-html-language-server" "--stdio"))))
 
 ;; (if (eq system-type 'darwin)
 ;; 	(setq lsp-clients-clangd-executable "/opt/homebrew/bin/clangd"))
@@ -412,23 +415,37 @@
 	:config
 	(keymap-set emmet-mode-keymap "TAB" #'emmet-expand-line))
 
-(use-package treesit-auto
-  :custom
-  (treesit-auto-install 'prompt)
+(use-package treesit
+  ;; No :ensure t because it's built into Emacs 30
+  :ensure nil
   :config
-  (treesit-auto-add-to-auto-mode-alist 'all)
-  (global-treesit-auto-mode))
+  (setq treesit-language-source-alist
+        '((python "https://github.com/tree-sitter/tree-sitter-python")
+          (javascript "https://github.com/tree-sitter/tree-sitter-javascript")
+          (cpp "https://github.com/tree-sitter/tree-sitter-cpp")
+          (c "https://github.com/tree-sitter/tree-sitter-c")
+          (java "https://github.com/tree-sitter/tree-sitter-java")
+          (css "https://github.com/tree-sitter/tree-sitter-css")
+          (html "https://github.com/tree-sitter/tree-sitter-html"))))
+
+;; Remap standard modes to Tree-sitter modes
+(setq major-mode-remap-alist
+      '((python-mode     . python-ts-mode)
+        (c-mode          . c-ts-mode)
+        (c++-mode        . c++-ts-mode)
+        (js-mode         . js-ts-mode)
+	(javascript-mode . js-ts-mode)
+        (java-mode       . java-ts-mode)
+        (css-mode        . css-ts-mode)
+        (html-mode       . html-ts-mode)
+        (typescript-mode . typescript-ts-mode)))
 
 (add-hook 'prog-mode-hook #'hl-line-mode)
 
-(use-package flycheck
-      :config
-      (add-hook 'prog-mode-hook 'flycheck-mode)
-      (add-hook 'after-init-hook #'global-flycheck-mode))
-
-(add-hook 'c++-mode-hook (lambda () (setq flycheck-gcc-language-standard "c++11" flycheck-clang-language-standard "c++11")))
-(add-hook 'c++-mode-hook (lambda () (setq flycheck-gcc-language-standard "c++11")))
-(add-hook 'c++-mode-hook (lambda () (setq flycheck-clang-language-standard "c++11")))
+(use-package flymake
+  :bind (("M-n" . flymake-goto-next-error)  ; Move to next error
+         ("M-p" . flymake-goto-prev-error)) ; Move to previous error
+  :hook (prog-mode . flymake-mode))
 
 (use-package magit)
 
@@ -443,7 +460,13 @@
 (setq display-line-numbers-width-start t)
 (setq display-line-numbers-grow-only t)
 
-(add-hook 'prog-mode-hook 'electric-pair-local-mode)
+;; (add-hook 'prog-mode-hook 'electric-pair-local-mode)
+
+(use-package smartparens
+  :ensure smartparens
+  :hook (prog-mode text-mode markdown-mode)
+  :config
+  (require 'smartparens-config))
 
 (defun my/org-babel-get-session ()
 "Return the name of the current Babel source block session."
@@ -468,8 +491,6 @@
   (org-display-inline-images))
 
 (keymap-set org-babel-map "C-v" 'my/org-babel-execute-session)
-
-
 
 (require 'projectile)
 (defun start-web-server-in-project ()
