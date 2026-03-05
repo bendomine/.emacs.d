@@ -4,6 +4,7 @@
 !config.org
 !config.el
 !my-project-manager.el
+!my-delete.el
 !snippets
 !.gitignore
 !snippets/

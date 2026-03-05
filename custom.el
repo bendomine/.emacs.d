@@ -29,7 +29,7 @@
  '(package-selected-packages
    '(auctex cdlatex consult consult-projectile corfu corfu-prescient
 	    doom-modeline doom-themes emmet-mode exec-path-from-shell
-	    flycheck highlight-indent-guides lsp-treemacs magit
+	    flycheck forge highlight-indent-guides lsp-treemacs magit
 	    marginalia multiple-cursors olivetti orderless org-modern
 	    org-roam-ui prescient smartparens treemacs-projectile
 	    treesit valign vertico-posframe vertico-prescient

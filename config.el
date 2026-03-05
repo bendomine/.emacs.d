@@ -7,6 +7,7 @@
 (load custom-file 'noerror)
 
 (load "~/.emacs.d/my-project-manager.el")
+(load "~/.emacs.d/my-delete.el")
 
 (tool-bar-mode -1)
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
@@ -120,6 +121,9 @@
 (advice-add 'avy-goto-char-timer :after #'pulse-symbol-at-point)
 
 (add-hook 'isearch-mode-end-hook #'pulse-symbol-at-point)
+
+(use-package ace-window)
+(bind-key* "M-o" 'ace-window)
 
 (defun my/comment-uncomment ()
 	"Runs comment-uncomment on the region if active, or the current line if not."
@@ -415,6 +419,10 @@
 	:config
 	(keymap-set emmet-mode-keymap "TAB" #'emmet-expand-line))
 
+;; (add-hook 'mhtml-mode-hook (lambda ()
+;; 			     (run-hooks 'prog-mode-hook)))
+(derived-mode-add-parents 'mhtml-mode '(prog-mode))
+
 (use-package treesit
   ;; No :ensure t because it's built into Emacs 30
   :ensure nil
@@ -448,6 +456,9 @@
   :hook (prog-mode . flymake-mode))
 
 (use-package magit)
+
+(use-package forge
+  :after magit)
 
 (use-package highlight-indent-guides
 	:ensure t
@@ -491,6 +502,8 @@
   (org-display-inline-images))
 
 (keymap-set org-babel-map "C-v" 'my/org-babel-execute-session)
+
+(setq auth-sources "~/.authinfo.gpg")
 
 (require 'projectile)
 (defun start-web-server-in-project ()

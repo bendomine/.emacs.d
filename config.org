@@ -23,6 +23,7 @@ Store customize code in a different file:
 Packages I’m currently developing will be in different files; load them also:
 #+begin_src emacs-lisp
   (load "~/.emacs.d/my-project-manager.el")
+  (load "~/.emacs.d/my-delete.el")
 #+end_src
 ** Basic GUI Tweaks
 First GUI customizations. We want fullscreen, no tool bar, and a dark frame:
@@ -244,6 +245,13 @@ I also want this functionality on each jump of an incremental search.
 #+begin_src emacs-lisp
   (add-hook 'isearch-mode-end-hook #'pulse-symbol-at-point)
 #+end_src
+
+I also want the ability to jump between windows, for which purpose I believe ace-window is the best choice.
+#+begin_src emacs-lisp
+  (use-package ace-window)
+  (bind-key* "M-o" 'ace-window)
+#+end_src
+
 ** Commenting
 I want commenting to work like in most editors. Specifically, I want to run comment-or-uncomment region; I want to run it on the region if it’s active, or the current line if not.
 #+begin_src emacs-lisp
@@ -724,6 +732,13 @@ For quick completions, I’ll use emmet-mode:
   	(keymap-set emmet-mode-keymap "TAB" #'emmet-expand-line))
 #+end_src
 
+I also want to make mhtml mode inherit the prog-mode stuff:
+#+begin_src emacs-lisp
+  ;; (add-hook 'mhtml-mode-hook (lambda ()
+  ;; 			     (run-hooks 'prog-mode-hook)))
+  (derived-mode-add-parents 'mhtml-mode '(prog-mode))
+#+end_src
+
 ** Syntax Highlighting
 I’ll use tree-sitter for completion. It’s included with emacs now, but this config should allow me to set the sources for my languages.
 #+begin_src emacs-lisp
@@ -778,6 +793,12 @@ For help with version control, I’ll use magit. I currently don’t have this c
   (use-package magit)
 #+end_src
 
+I also want to use forge, which is the magit integration with git forges like github and gitlab.
+#+begin_src emacs-lisp
+  (use-package forge
+    :after magit)
+#+end_src
+
 ** Indentation
 I want indentation lines to be displayed, so I’ll use the highlight-indent-guides package.
 #+begin_src emacs-lisp
@@ -813,6 +834,20 @@ However, I’m going to try smartparens instead:
     (require 'smartparens-config))
 #+end_src
 
+This does mean that I have to reimplement electric-pair-open-newline-between-pairs, however. This is the function that will be called whenever I hit enter after making a pair:
+#+begin_src emacs-lisp
+  (defun my/newline-and-indent-handler (&rest _ignored)
+    "Vertically split an expression inside of a pair."
+    (newline-and-indent)
+    (forward-line -1)
+    (indent-according-to-mode))
+#+end_src
+
+And here’s the binding of that handler:
+#+begin_src emacs-lisp
+  (sp-local-pair 'prog-mode "{" nil :post-handlers '((my/newline-and-indent-handler "RET")))
+#+end_src
+
 ** Python
 Emacs is better than Jupyter notebooks, so I’ve implemented a helper function for Babel that executes all the code in a given session in order. This first function gets the session name for a given code block.
 #+begin_src emacs-lisp
@@ -845,6 +880,12 @@ This second function is a modified version of org-babel-execute-buffer, which te
 I’m going to want this to be a pretty easy command to execute quickly.
 #+begin_src emacs-lisp
   (keymap-set org-babel-map "C-v" 'my/org-babel-execute-session)
+#+end_src
+
+** Authentication
+I want to use only one file for keeping secrets and other authentication tokens, authinfo.gpg.
+#+begin_src emacs-lisp
+  (setq auth-sources "~/.authinfo.gpg")
 #+end_src
 
 * Projects
