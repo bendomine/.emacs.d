@@ -42,6 +42,9 @@
 (global-set-key (kbd "C-z") 'undo)
 (global-set-key (kbd "C-S-z") 'undo-redo)
 
+(global-set-key (kbd "M-F") 'forward-sexp)
+(global-set-key (kbd "M-B") 'backward-sexp)
+
 (pixel-scroll-precision-mode)
 
 (use-package nerd-icons
@@ -106,7 +109,7 @@
     :ensure t
     :config
     (setq avy-timeout-seconds 0.15)
-    :bind (("M-j" . avy-goto-char-timer)))
+    :bind (("M-j" . avy-goto-char)))
 
 (defun pulse-symbol-at-point ()
     "Briefly pulse the symbol under the current point."
@@ -155,6 +158,8 @@
 (with-eval-after-load 'c++-mode
     (define-key c++-mode-map (kbd "C-d") nil))
 
+(use-package scroll-restore)
+
 (defun swap-line-up ()
     "Swap the current line with the one above it, retaining cursor position."
     (interactive)
@@ -198,6 +203,47 @@
 
 (setq require-final-newline nil)
 (setq mode-require-final-newline nil)
+
+(defalias 'yes-or-no-p 'y-or-n-p)
+
+(setq confirm-kill-emacs 'yes-or-no-p)
+
+(global-auto-revert-mode 1)
+
+(setq gc-cons-threshold 1000000)
+
+(setq make-backup-files nil)
+(setq auto-save-default nil)
+
+(require 'ibuffer)
+(global-set-key (kbd "C-x C-b") 'ibuffer-other-window)
+
+(defun smarter-move-beginning-of-line (arg)
+  "Move point back to indentation of beginning of line.
+
+Move point to the first non-whitespace character on this line.
+If point is already there, move to the beginning of the line.
+Effectively toggle between the first non-whitespace character and
+the beginning of the line.
+
+If ARG is not nil or 1, move forward ARG - 1 lines first.  If
+point reaches the beginning or end of the buffer, stop there."
+  (interactive "^p")
+  (setq arg (or arg 1))
+
+  ;; Move lines first
+  (when (/= arg 1)
+    (let ((line-move-visual nil))
+      (forward-line (1- arg))))
+
+  (let ((orig-point (point)))
+    (back-to-indentation)
+    (when (= orig-point (point))
+      (move-beginning-of-line 1))))
+
+;; remap C-a to `smarter-move-beginning-of-line'
+(global-set-key [remap move-beginning-of-line]
+                'smarter-move-beginning-of-line)
 
 (use-package which-key
     :ensure t
@@ -288,7 +334,12 @@
          ("ilap" "Insert inverse Laplace transform" "\\mathcal L^{-1} {" cdlatex-lr-pair nil nil t)
          ("lim" "Insert limit" "\\lim_{?}" cdlatex-position-cursor nil nil t)
          ("()" "Insert inline math" "\\(?\\)" cdlatex-position-cursor nil t nil)
+	 ("tt" "Insert \\text{}" "\\text{?}" cdlatex-position-cursor nil nil t)
          ("hb" "Insert \\hbar" "\\hbar" nil nil nil t)))
+
+(setq cdlatex-math-modify-alist
+      '((118 "\\vb*" nil t nil nil)))
+;; 6 items: key, mathcmd, textcmd, type (t if has argument, nil if style), rmdot (for if the dot on i and j should be removed idk), and t if italic correction is required.
 
 (defun begin-inline-math ()
     "Begins an inline math environment with \\(\\).  Requires cdlatex."
@@ -344,7 +395,7 @@
 	 )
 	("p" "physics" plain "%?"
   	 :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
-  			    "#+startup: latexpreview\n#+filetags: :physics:\n#+title: ${title}")
+  			    "#+startup: latexpreview\n#+latex_header: \\usepackage{physics}\n#+filetags: :physics:\n#+title: ${title}")
   	 :unnarrowed t
 	 )
 	("m" "math" plain "%?"
@@ -400,6 +451,8 @@
 (org-babel-do-load-languages
 	'org-babel-load-languages '((python . t)))
 
+(setq org-babel-python-command "/usr/bin/python3")
+
 (use-package eglot
   :ensure t
   :hook ((python-ts-mode . eglot-ensure)
@@ -435,6 +488,8 @@
           (java "https://github.com/tree-sitter/tree-sitter-java")
           (css "https://github.com/tree-sitter/tree-sitter-css")
           (html "https://github.com/tree-sitter/tree-sitter-html"))))
+
+(setq treesit-extra-load-path '("~/.emacs.d/tree-sitter-gdscript/src"))
 
 ;; Remap standard modes to Tree-sitter modes
 (setq major-mode-remap-alist
@@ -479,6 +534,15 @@
   :config
   (require 'smartparens-config))
 
+(defun my/newline-and-indent-handler (&rest _ignored)
+  "Vertically split an expression inside of a pair."
+  (newline-and-indent)
+  (forward-line -1)
+  (indent-according-to-mode))
+
+(require 'smartparens)
+(sp-local-pair 'prog-mode "{" nil :post-handlers '((my/newline-and-indent-handler "RET")))
+
 (defun my/org-babel-get-session ()
 "Return the name of the current Babel source block session."
 (interactive)
@@ -503,7 +567,11 @@
 
 (keymap-set org-babel-map "C-v" 'my/org-babel-execute-session)
 
+(use-package gdscript-mode)
+
 (setq auth-sources "~/.authinfo.gpg")
+
+(add-hook 'prog-mode-hook 'hs-minor-mode)
 
 (require 'projectile)
 (defun start-web-server-in-project ()

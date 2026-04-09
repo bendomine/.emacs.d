@@ -29,12 +29,14 @@
  '(package-selected-packages
    '(auctex cdlatex consult consult-projectile corfu corfu-prescient
 	    doom-modeline doom-themes emmet-mode exec-path-from-shell
-	    flycheck forge highlight-indent-guides lsp-treemacs magit
-	    marginalia multiple-cursors olivetti orderless org-modern
-	    org-roam-ui prescient smartparens treemacs-projectile
-	    treesit valign vertico-posframe vertico-prescient
-	    yasnippet))
+	    flycheck forge gdscript-mode highlight-indent-guides
+	    lsp-treemacs magit marginalia multiple-cursors olivetti
+	    orderless org-modern org-roam-ui prescient scroll-restore
+	    smartparens treemacs-projectile treesit valign
+	    vertico-posframe vertico-prescient yasnippet))
  '(ring-bell-function 'ignore)
+ '(safe-local-variable-directories
+   '("/Users/bendomine/Documents/Coding/CSE 3601/lab-04-bendomine/"))
  '(scroll-bar-mode nil)
  '(send-mail-function 'mailclient-send-it)
  '(tab-bar-new-tab-choice "*Splash Screen*")

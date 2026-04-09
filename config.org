@@ -88,6 +88,14 @@ I want to use C-/ for commenting, so I’ll bind undo to C-z like normal. I don�
   (global-set-key (kbd "C-z") 'undo)
   (global-set-key (kbd "C-S-z") 'undo-redo)
 #+end_src
+** S-Expressions
+The built-in keybindings for forward- and backward-sexp are prefixed with C-M-. I just generally dislike this combination.
+
+#+begin_src emacs-lisp
+  (global-set-key (kbd "M-F") 'forward-sexp)
+  (global-set-key (kbd "M-B") 'backward-sexp)
+#+end_src
+
 * UI
 ** Scrolling
 I want precision pixel scrolling, meaning that when I use the scroll wheel I want smooth scrolling instead of line-by-line scrolling. This obviously only has an impact in GUI mode. Also, it can cause lag depending on the machine and version/port of emacs!
@@ -219,7 +227,7 @@ I use Avy to quickly jump to any visible text. The function I primarily use here
       :ensure t
       :config
       (setq avy-timeout-seconds 0.15)
-      :bind (("M-j" . avy-goto-char-timer)))
+      :bind (("M-j" . avy-goto-char)))
 
 #+end_src
 
@@ -303,6 +311,14 @@ Finally, the c++ mode keymap eats C-d. It would be better practice to bind it to
   (with-eval-after-load 'c++-mode
       (define-key c++-mode-map (kbd "C-d") nil))
 #+end_src
+
+** Off-Screen Cursor
+Emacs traditionally does not allow point to exist "offscreen", which is kinda annoying, so I’ll remedy that with the scroll-restore package.
+
+#+begin_src emacs-lisp
+  (use-package scroll-restore)
+#+end_src
+
 ** Moving Lines
 This is a feature from VSCode that I quite like. The idea is to move lines around with M-up and M-down, and also to duplicate lines up and down with M-S-up and M-S-down.
 
@@ -369,6 +385,75 @@ Emacs defaults to adding a newline at the end of the file on saving. I dislike t
 #+begin_src emacs-lisp
   (setq require-final-newline nil)
   (setq mode-require-final-newline nil)
+#+end_src
+** Confirmation Functions
+The default confirmation function is yes-or-no-p, which is a predicate that prompts for a yes or no input. I wish to replace this with y-or-n-p, which only requires a single keypress.
+#+begin_src emacs-lisp
+  (defalias 'yes-or-no-p 'y-or-n-p)
+#+end_src
+
+** Confirm on Exit
+I want to ask for confirmation before quitting emacs.
+#+begin_src emacs-lisp
+  (setq confirm-kill-emacs 'yes-or-no-p)
+#+end_src
+
+** Auto Revert
+When a buffer is changed on disk, I want those changes to be immediately reflected in the buffer.
+#+begin_src emacs-lisp
+  (global-auto-revert-mode 1)
+#+end_src
+
+** Garbage Collection
+I’m not entirely sure what this does, but I’ve heard it highly recommended:
+#+begin_src emacs-lisp
+  (setq gc-cons-threshold 1000000)
+#+end_src
+
+** Backup Files
+I don’t want the auto-save or backup files that emacs normally creates.
+#+begin_src emacs-lisp
+  (setq make-backup-files nil)
+  (setq auto-save-default nil)
+#+end_src
+
+** IBuffer
+I want to replace the default buffer list with the ibuffer list:
+#+begin_src emacs-lisp
+  (require 'ibuffer)
+  (global-set-key (kbd "C-x C-b") 'ibuffer-other-window)
+#+end_src
+
+** Better Beginning of Line
+One issue with the beginning-of-line command, bound to C-a, is that it jumps over all whitespace, which is really annoying when coding. I will therefore replace it with a new version that jumps to the end of the whitespace, and then if used further toggles between the beginning of the line and the end of the whitespace. The code is taken from [[https://emacsredux.com/blog/2013/05/22/smarter-navigation-to-the-beginning-of-a-line/][here]].
+
+#+begin_src emacs-lisp
+  (defun smarter-move-beginning-of-line (arg)
+    "Move point back to indentation of beginning of line.
+
+  Move point to the first non-whitespace character on this line.
+  If point is already there, move to the beginning of the line.
+  Effectively toggle between the first non-whitespace character and
+  the beginning of the line.
+
+  If ARG is not nil or 1, move forward ARG - 1 lines first.  If
+  point reaches the beginning or end of the buffer, stop there."
+    (interactive "^p")
+    (setq arg (or arg 1))
+
+    ;; Move lines first
+    (when (/= arg 1)
+      (let ((line-move-visual nil))
+        (forward-line (1- arg))))
+
+    (let ((orig-point (point)))
+      (back-to-indentation)
+      (when (= orig-point (point))
+        (move-beginning-of-line 1))))
+
+  ;; remap C-a to `smarter-move-beginning-of-line'
+  (global-set-key [remap move-beginning-of-line]
+                  'smarter-move-beginning-of-line)
 #+end_src
 
 * Completions and Search
@@ -532,7 +617,15 @@ I also have a few custom templates for CDLatex.
            ("ilap" "Insert inverse Laplace transform" "\\mathcal L^{-1} {" cdlatex-lr-pair nil nil t)
            ("lim" "Insert limit" "\\lim_{?}" cdlatex-position-cursor nil nil t)
            ("()" "Insert inline math" "\\(?\\)" cdlatex-position-cursor nil t nil)
+  	 ("tt" "Insert \\text{}" "\\text{?}" cdlatex-position-cursor nil nil t)
            ("hb" "Insert \\hbar" "\\hbar" nil nil nil t)))
+#+end_src
+
+Similarly, some templates for modifying text:
+#+begin_src emacs-lisp
+  (setq cdlatex-math-modify-alist
+        '((118 "\\vb*" nil t nil nil)))
+  ;; 6 items: key, mathcmd, textcmd, type (t if has argument, nil if style), rmdot (for if the dot on i and j should be removed idk), and t if italic correction is required.
 #+end_src
 
 Finally, though this is not directly related to org mode, I have a custom command to insert inline math, bound to C-(. It uses CDLatex to move the cursor back to the center of the parentheses.
@@ -558,6 +651,7 @@ I’ll also use Auctex for some other LaTeX utilities like syntax highlighting.
   (setq TeX-parse-self t)
   (setq-default TeX-master nil)
 #+end_src
+
 ** Encryption
 I’ll use GPG and org-crypt to allow for the encryption of specific headings in org mode.
 #+begin_src emacs-lisp
@@ -613,7 +707,7 @@ I’ll want to create some custom capture templates at some point, so I’ll ove
   	 )
   	("p" "physics" plain "%?"
     	 :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
-    			    "#+startup: latexpreview\n#+filetags: :physics:\n#+title: ${title}")
+    			    "#+startup: latexpreview\n#+latex_header: \\usepackage{physics}\n#+filetags: :physics:\n#+title: ${title}")
     	 :unnarrowed t
   	 )
   	("m" "math" plain "%?"
@@ -700,6 +794,11 @@ In order to use org mode’s excellent Babel feature, I need to include the lang
   	'org-babel-load-languages '((python . t)))
 #+end_src
 
+This fixes python, hopefully, but is system dependent:
+#+begin_src emacs-lisp
+  (setq org-babel-python-command "/usr/bin/python3")
+#+end_src
+
 * Programming
 ** Language Server Protocol Client
 I want to use the built-in eglot for LSP stuff.
@@ -754,6 +853,8 @@ I’ll use tree-sitter for completion. It’s included with emacs now, but this 
             (java "https://github.com/tree-sitter/tree-sitter-java")
             (css "https://github.com/tree-sitter/tree-sitter-css")
             (html "https://github.com/tree-sitter/tree-sitter-html"))))
+
+  (setq treesit-extra-load-path '("~/.emacs.d/tree-sitter-gdscript/src"))
 #+end_src
 
 I also want to remap most programming modes to use their treesit counterparts:
@@ -845,6 +946,7 @@ This does mean that I have to reimplement electric-pair-open-newline-between-pai
 
 And here’s the binding of that handler:
 #+begin_src emacs-lisp
+  (require 'smartparens)
   (sp-local-pair 'prog-mode "{" nil :post-handlers '((my/newline-and-indent-handler "RET")))
 #+end_src
 
@@ -882,10 +984,22 @@ I’m going to want this to be a pretty easy command to execute quickly.
   (keymap-set org-babel-map "C-v" 'my/org-babel-execute-session)
 #+end_src
 
+** Godot
+I’ll add Godot’s emacs package.
+#+begin_src emacs-lisp
+  (use-package gdscript-mode)
+#+end_src
+
 ** Authentication
 I want to use only one file for keeping secrets and other authentication tokens, authinfo.gpg.
 #+begin_src emacs-lisp
   (setq auth-sources "~/.authinfo.gpg")
+#+end_src
+
+** Code Folding
+I just like to have the ability to fold blocks of code at will. This is accomplished using the hideshow minor mode:
+#+begin_src emacs-lisp
+  (add-hook 'prog-mode-hook 'hs-minor-mode)
 #+end_src
 
 * Projects
