@@ -37,11 +37,6 @@
 (setq mac-command-modifier 'control)
 (setq mac-control-modifier 'super)
 
-(global-set-key (kbd "C-o") 'set-mark-command)
-
-(global-set-key (kbd "C-z") 'undo)
-(global-set-key (kbd "C-S-z") 'undo-redo)
-
 (global-set-key (kbd "M-F") 'forward-sexp)
 (global-set-key (kbd "M-B") 'backward-sexp)
 
@@ -76,9 +71,25 @@
 (setq doom-modeline-battery t)
 (display-battery-mode +1)
 
-(let ((color (face-attribute 'highlight :background)))
-	(set-face-attribute 'tab-bar-tab nil :box '(:line-width 10 :style flat-button) :underline `(:color ,color :style line :position t)
-	))
+;; (let ((color (face-attribute 'highlight :background)))
+;; 	(set-face-attribute 'tab-bar-tab nil :box '(:line-width 10 :style flat-button) :underline `(:color ,color :style line :position t)
+;; 	))
+(defun my-setup-tab-bar-faces ()
+  "Apply GUI-specific faces for the tab bar."
+  ;; Optional: Ensure we are in a GUI before setting GUI attributes
+  (when (display-graphic-p)
+    (let ((color (face-attribute 'highlight :background nil t)))
+      ;; Only apply if a valid color was actually returned
+      (when (and color (not (eq color 'unspecified)))
+        (set-face-attribute 'tab-bar-tab nil 
+                            :box '(:line-width 10 :style flat-button) 
+                            :underline `(:color ,color :style line :position t))))))
+
+;; If starting as a daemon, wait for the frame. 
+;; If starting normally (standalone app), run it immediately.
+(if (daemonp)
+    (add-hook 'server-after-make-frame-hook #'my-setup-tab-bar-faces)
+  (my-setup-tab-bar-faces))
 
 (add-hook 'tab-bar-mode-hook (lambda () (setq tab-bar-close-button
 	#(" " 0 1
@@ -141,22 +152,7 @@
 			(set-mark-command t)
 			(set-mark-command t))))
 
-(global-set-key (kbd "C-/") 'my/comment-uncomment)
-
-(package-install 'multiple-cursors)
-(require 'multiple-cursors)
-
-(global-set-key (kbd "C-d") 'mc/mark-next-like-this-word)
-(global-set-key (kbd "C-S-d") 'mc/unmark-next-like-this)
-
-(delete-selection-mode 1)
-(add-hook 'multiple-cursors-mode-hook (lambda () (delete-selection-mode -1)))
-(add-hook 'multiple-cursors-mode-disabled-hook (lambda () (delete-selection-mode 1)))
-
-(define-key mc/keymap (kbd "<return") nil)
-
-(with-eval-after-load 'c++-mode
-    (define-key c++-mode-map (kbd "C-d") nil))
+;; (global-set-key (kbd "C-/") 'my/comment-uncomment)
 
 (use-package scroll-restore)
 
@@ -242,8 +238,8 @@ point reaches the beginning or end of the buffer, stop there."
       (move-beginning-of-line 1))))
 
 ;; remap C-a to `smarter-move-beginning-of-line'
-(global-set-key [remap move-beginning-of-line]
-                'smarter-move-beginning-of-line)
+;;(global-set-key [remap move-beginning-of-line]
+               ;; 'smarter-move-beginning-of-line)
 
 (use-package which-key
     :ensure t
@@ -252,7 +248,10 @@ point reaches the beginning or end of the buffer, stop there."
 
 (use-package vertico
     :init
-    (vertico-mode))
+    (vertico-mode)
+    :bind (:map vertico-map
+    ("C-j" . vertico-next)
+    ("C-k" . vertico-previous)))
 
 (use-package emacs
     :custom
@@ -263,25 +262,27 @@ point reaches the beginning or end of the buffer, stop there."
     (marginalia-mode))
 
 (use-package corfu
-    :custom
-    (corfu-auto t)
-    (corfu-cycle t) ;; Enable cycling for `corfu-next/previous'
-	:hook ((prog-mode . corfu-mode)
-			  (shell-mode . corfu-mode)
-			  (eshell-mode . corfu-mode))
-    :bind
-    (:map corfu-map
+  :custom
+  (corfu-auto t)
+  (corfu-cycle t) ;; Enable cycling for `corfu-next/previous'
+  :hook ((prog-mode . corfu-mode)
+	 (shell-mode . corfu-mode)
+	 (eshell-mode . corfu-mode))
+  :bind
+  (:map corfu-map
         ;;     ("TAB" . corfu-next)
         ;;     ("C-n" . corfu-next)
         ;;     ([tab] . corfu-next)
         ;;     ("C-p" . corfu-previous)
         ;;     ("S-TAB" . corfu-previous)
         ;;     ([backtab] . corfu-previous)
-		("M-<backspace>" . backward-kill-word)
-		("C-<backspace>" . backward-kill-word)
-        ("ESC" . corfu-quit)))
+	("M-<backspace>" . backward-kill-word)
+	("C-<backspace>" . backward-kill-word)
+	;; ("ESC" . corfu-quit)
+	))
 
-;;  (setq corfu-auto-delay 0.2)
+(setq corfu-auto-delay 0)
+(setq corfu-auto-prefix 2)
 
 (use-package orderless
     :custom
@@ -335,7 +336,8 @@ point reaches the beginning or end of the buffer, stop there."
          ("lim" "Insert limit" "\\lim_{?}" cdlatex-position-cursor nil nil t)
          ("()" "Insert inline math" "\\(?\\)" cdlatex-position-cursor nil t nil)
 	 ("tt" "Insert \\text{}" "\\text{?}" cdlatex-position-cursor nil nil t)
-         ("hb" "Insert \\hbar" "\\hbar" nil nil nil t)))
+         ("hb" "Insert \\hbar" "\\hbar" nil nil nil t)
+	 ("bb" "Insert \\mathbb" "\\mathbb " nil nil nil t)))
 
 (setq cdlatex-math-modify-alist
       '((118 "\\vb*" nil t nil nil)))
@@ -515,12 +517,27 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package forge
   :after magit)
 
-(use-package highlight-indent-guides
-	:ensure t
-	:hook (prog-mode . highlight-indent-guides-mode)
-	:custom
-	(highlight-indent-guides-method 'character)
-	(highlight-indent-guides-auto-character-face-perc 80))
+(use-package indent-bars
+  :ensure t
+  :hook ((prog-mode . indent-bars-mode))
+  :config
+  (setq 
+        indent-bars-prefer-character t
+
+        ;; Show indent guides starting from the first column.
+        indent-bars-starting-column 0
+        ;; Make indent guides subtle; the default is too distractingly colorful.
+        indent-bars-width-frac 0.15  ; make bitmaps thinner
+        indent-bars-color-by-depth nil
+        indent-bars-color '(font-lock-comment-face :face-bg nil :blend 0.425)
+        ;; Don't highlight current level indentation; it's distracting and is
+        ;; unnecessary overhead for little benefit.
+        indent-bars-highlight-current-depth nil
+        ;; The default is `t', which shows indent-bars even on blank lines
+        ;; beyond the end of an indented block. Setting it to `nil' will cause
+        ;; gaps in the indent guides, which looks odd. `least' is a good
+        ;; compromise, and doesn't suffer the scrolling issue.
+        indent-bars-display-on-blank-lines 'least))
 
 (add-hook 'prog-mode-hook 'display-line-numbers-mode)
 (setq display-line-numbers-width-start t)
@@ -702,3 +719,112 @@ point reaches the beginning or end of the buffer, stop there."
 
 (global-set-key (kbd "C-<wheel-up>") nil)
 (global-set-key (kbd "C-<wheel-down>") nil)
+
+(use-package emacs-everywhere
+  :ensure t)
+
+(use-package helpful
+  :ensure t)
+
+;; Enable Evil
+(use-package evil
+  :init
+  (setq evil-want-integration t) ;; This is optional since it's already set to t by default.
+  (setq evil-want-keybinding nil) ;; Required for evil-collection to work properly
+  (setq evil-want-C-u-scroll t)   ;; Allow C-u to scroll up like in Vim
+  (setq evil-want-C-i-jump t)     ;; Allow C-i to jump forward like in Vim
+  :config
+  (evil-mode 1))
+
+(use-package evil-collection
+  :after evil
+  :ensure t
+  :config
+  (evil-collection-init))
+
+(use-package evil-commentary
+  :config
+  (evil-commentary-mode))
+
+(use-package evil-escape
+  :ensure t
+  :init
+  (setq-default evil-escape-key-sequence "jk")
+  (setq-default evil-escape-delay 0.15)
+  :config
+  (evil-escape-mode 1))
+
+(define-key evil-normal-state-map (kbd "j") 'evil-next-visual-line)
+(define-key evil-normal-state-map (kbd "k") 'evil-previous-visual-line)
+(define-key evil-normal-state-map (kbd "gj") 'evil-next-line)
+(define-key evil-normal-state-map (kbd "gk") 'evil-previous-line)
+
+(require 'ibuffer)
+(require 'helpful)
+(require 'magit)
+(require 'projectile)
+(use-package general
+  :ensure t
+  :config
+  ;; Tell general to integrate with Evil
+  (general-evil-setup t)
+
+  ;; Create a custom definer for your leader keys
+  (general-create-definer my-leader-def
+			  :states '(normal visual insert emacs)
+			  :keymaps 'override
+			  :prefix "SPC"
+			  ;; This allows you to use Alt+Space as the leader in insert mode
+			  :non-normal-prefix "M-SPC") 
+
+  ;; Now define your keybindings using your new definer
+  (my-leader-def
+   "SPC" 'execute-extended-command ;; SPC SPC for M-x
+   "."   'find-file
+   ","   'switch-to-buffer
+   "s"   'save-buffer
+
+   ;; File commands
+   "f"   '(:ignore t :which-key "file")
+   "ff"  'find-file
+   "fs"  'save-buffer
+
+   ;; Buffer commands
+   "b"   '(:ignore t :which-key "buffer")
+   "bb"  'switch-to-buffer
+   "bi"  'ibuffer-other-window
+   "bk"  'kill-buffer
+   "bd"  'kill-current-buffer
+
+   ;; Help commands
+   "h"   '(:ignore t :which-key "describe")
+   "hf"  'helpful-callable
+   "hv"  'helpful-variable
+   "hm"  'describe-mode
+   "hk"  'helpful-key
+
+   ;; Window commands
+   "w"   '(:ignore t :which-key "window")
+   "wc"  'delete-window
+   "ww"  'delete-other-windows
+   "wr"  'split-window-right
+   "wd"  'split-window-below
+   "wh"  'evil-window-left
+   "wj"  'evil-window-down
+   "wk"  'evil-window-up
+   "wl"  'evil-window-right
+
+   ;; Quit commands
+   "q"   '(:ignore t :which-key "quit")
+   "qr"  'restart-emacs
+   "qq"  'save-buffers-kill-terminal
+
+   ;; Magit commands
+   "g"   '(:ignore t :which-key "magit")
+   "gg"  'magit-status
+
+   ;; Projectile commands
+   "p"   '(:ignore t :which-key "projectile")
+   "pp"  'projectile-switch-project
+   "pf"  'projectile-find-file
+   "pa"  'projectile-add-known-project))

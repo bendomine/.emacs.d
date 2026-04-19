@@ -486,7 +486,10 @@ For completion in the minibuffer, I’ll use vertico:
 #+begin_src emacs-lisp
   (use-package vertico
       :init
-      (vertico-mode))
+      (vertico-mode)
+      :bind (:map vertico-map
+      ("C-j" . vertico-next)
+      ("C-k" . vertico-previous)))
 #+end_src
 
 I also want to hide all commands that aren’t available in the current mode. This snippet comes from the Shane Kennedy blog post I linked previously.
@@ -502,7 +505,7 @@ Finally, I’ll use marginalia. This package makes it so that the completion opt
       :init
       (marginalia-mode))
 #+end_src
-** COMMENT In-Buffer Completion
+** In-Buffer Completion
 As far as I can tell, there are two primary options for in-buffer completion: company and corfu. Because I’m already using other Minad packages, it seems most logical to go for corfu here. This is a pretty minimal setup. I currently have a map that’s commented out, because I’m still deciding on the best keybindings here.
 #+begin_src emacs-lisp
   (use-package corfu
@@ -920,14 +923,29 @@ I also want to use forge, which is the magit integration with git forges like gi
 #+end_src
 
 ** Indentation
-I want indentation lines to be displayed, so I’ll use the highlight-indent-guides package.
+I want indentation lines to be displayed, so I’ll use the indent-bars package.
 #+begin_src emacs-lisp
-  (use-package highlight-indent-guides
-  	:ensure t
-  	:hook (prog-mode . highlight-indent-guides-mode)
-  	:custom
-  	(highlight-indent-guides-method 'character)
-  	(highlight-indent-guides-auto-character-face-perc 80))
+  (use-package indent-bars
+    :ensure t
+    :hook ((prog-mode . indent-bars-mode))
+    :config
+    (setq 
+          indent-bars-prefer-character t
+
+          ;; Show indent guides starting from the first column.
+          indent-bars-starting-column 0
+          ;; Make indent guides subtle; the default is too distractingly colorful.
+          indent-bars-width-frac 0.15  ; make bitmaps thinner
+          indent-bars-color-by-depth nil
+          indent-bars-color '(font-lock-comment-face :face-bg nil :blend 0.425)
+          ;; Don't highlight current level indentation; it's distracting and is
+          ;; unnecessary overhead for little benefit.
+          indent-bars-highlight-current-depth nil
+          ;; The default is `t', which shows indent-bars even on blank lines
+          ;; beyond the end of an indented block. Setting it to `nil' will cause
+          ;; gaps in the indent guides, which looks odd. `least' is a good
+          ;; compromise, and doesn't suffer the scrolling issue.
+          indent-bars-display-on-blank-lines 'least))
 #+end_src
 
 ** Line numbers
@@ -1272,6 +1290,7 @@ I want to use the spacebar as a leader, doom-style. I therefore have a big list 
   (require 'ibuffer)
   (require 'helpful)
   (require 'magit)
+  (require 'projectile)
   (use-package general
     :ensure t
     :config
@@ -1330,6 +1349,21 @@ I want to use the spacebar as a leader, doom-style. I therefore have a big list 
 
      ;; Magit commands
      "g"   '(:ignore t :which-key "magit")
-     "gg"  'magit-status))
+     "gg"  'magit-status
+
+     ;; Projectile commands
+     "p"   '(:ignore t :which-key "projectile")
+     "pp"  'projectile-switch-project
+     "pf"  'projectile-find-file
+     "pa"  'projectile-add-known-project
+
+     ;; Tab commands
+     "t"   '(:ignore t :which-key "tabs")
+     "tt"  'tab-new
+     "tc"  'tab-close
+     "tr"  'tab-rename
+     "tl"  'tab-next
+     "th"  'tab-previous
+     "t SPC" 'tab-switch))
 
 #+end_src
