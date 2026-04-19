@@ -79,12 +79,12 @@ I primarily use Mac, so I want most keybindings to use the command key. So, I’
 #+end_src
 
 This means that I need to resolve the keyboard conflicts that arise from mac taking over certain commands, such as command + space.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (global-set-key (kbd "C-o") 'set-mark-command)
 #+end_src
 ** Undo, Redo
 I want to use C-/ for commenting, so I’ll bind undo to C-z like normal. I don’t need to use suspend-frame much at all, so this should be acceptable.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (global-set-key (kbd "C-z") 'undo)
   (global-set-key (kbd "C-S-z") 'undo-redo)
 #+end_src
@@ -177,9 +177,25 @@ Just for fun, I’ll also enable the battery indicator, updating every 30 second
 ** Tab Bar
 I want to move away from centaur-tabs, as it’s a very buggy and generally annoying package. Instead, I’ll customize the built-in tab bar to work a little better.
 #+begin_src emacs-lisp
-  (let ((color (face-attribute 'highlight :background)))
-  	(set-face-attribute 'tab-bar-tab nil :box '(:line-width 10 :style flat-button) :underline `(:color ,color :style line :position t)
-  	))
+  ;; (let ((color (face-attribute 'highlight :background)))
+  ;; 	(set-face-attribute 'tab-bar-tab nil :box '(:line-width 10 :style flat-button) :underline `(:color ,color :style line :position t)
+  ;; 	))
+  (defun my-setup-tab-bar-faces ()
+    "Apply GUI-specific faces for the tab bar."
+    ;; Optional: Ensure we are in a GUI before setting GUI attributes
+    (when (display-graphic-p)
+      (let ((color (face-attribute 'highlight :background nil t)))
+        ;; Only apply if a valid color was actually returned
+        (when (and color (not (eq color 'unspecified)))
+          (set-face-attribute 'tab-bar-tab nil 
+                              :box '(:line-width 10 :style flat-button) 
+                              :underline `(:color ,color :style line :position t))))))
+
+  ;; If starting as a daemon, wait for the frame. 
+  ;; If starting normally (standalone app), run it immediately.
+  (if (daemonp)
+      (add-hook 'server-after-make-frame-hook #'my-setup-tab-bar-faces)
+    (my-setup-tab-bar-faces))
 #+end_src
 
 The above face adds an underline, but the box face messes with the underline on the close button for some reason. SETUP TAB BAR: replace the file path below with the file path found in ~tab-bar-close-button~ without any customization.
@@ -276,12 +292,12 @@ I want commenting to work like in most editors. Specifically, I want to run comm
   			(set-mark-command t)
   			(set-mark-command t))))
 
-  (global-set-key (kbd "C-/") 'my/comment-uncomment)
+  ;; (global-set-key (kbd "C-/") 'my/comment-uncomment)
 #+end_src
 
 ** Multiple Cursors
 This one’s pretty straightforward. As a former VSCode user, I like multiple cursors for simultaneously editing different things (and it just looks really cool).
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (package-install 'multiple-cursors)
   (require 'multiple-cursors)
 #+end_src
@@ -289,25 +305,25 @@ This one’s pretty straightforward. As a former VSCode user, I like multiple cu
 Note: a list of mc commands can be found [[https://github.com/magnars/multiple-cursors.el?tab=readme-ov-file#command-overview][here]].
 
 I’m not using anything close to the full functionality of this package; for now, I just want to bind C-d and C-S-d to mark and unmark the next instances of the current word.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (global-set-key (kbd "C-d") 'mc/mark-next-like-this-word)
   (global-set-key (kbd "C-S-d") 'mc/unmark-next-like-this)
 #+end_src
 
 When using this command, the word is selected by default. This leads to some inconvenience, so I’ll disable delete-selection-mode so that it’s possible to type stuff at the end of a word after using this command. We then re-enable it after exiting mc mode. I also make sure delete-selection-mode is enabled to begin with.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (delete-selection-mode 1)
   (add-hook 'multiple-cursors-mode-hook (lambda () (delete-selection-mode -1)))
   (add-hook 'multiple-cursors-mode-disabled-hook (lambda () (delete-selection-mode 1)))
 #+end_src
 
 By default, return is bound to disable mc mode. I dislike this.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (define-key mc/keymap (kbd "<return") nil)
 #+end_src
 
 Finally, the c++ mode keymap eats C-d. It would be better practice to bind it to something like C-c d, but I’m more used to C-d, so I’ll try to rebind that. Note: this doesn’t actually work 😥.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (with-eval-after-load 'c++-mode
       (define-key c++-mode-map (kbd "C-d") nil))
 #+end_src
@@ -452,8 +468,8 @@ One issue with the beginning-of-line command, bound to C-a, is that it jumps ove
         (move-beginning-of-line 1))))
 
   ;; remap C-a to `smarter-move-beginning-of-line'
-  (global-set-key [remap move-beginning-of-line]
-                  'smarter-move-beginning-of-line)
+  ;;(global-set-key [remap move-beginning-of-line]
+                 ;; 'smarter-move-beginning-of-line)
 #+end_src
 
 * Completions and Search
@@ -486,32 +502,34 @@ Finally, I’ll use marginalia. This package makes it so that the completion opt
       :init
       (marginalia-mode))
 #+end_src
-** In-Buffer Completion
+** COMMENT In-Buffer Completion
 As far as I can tell, there are two primary options for in-buffer completion: company and corfu. Because I’m already using other Minad packages, it seems most logical to go for corfu here. This is a pretty minimal setup. I currently have a map that’s commented out, because I’m still deciding on the best keybindings here.
 #+begin_src emacs-lisp
   (use-package corfu
-      :custom
-      (corfu-auto t)
-      (corfu-cycle t) ;; Enable cycling for `corfu-next/previous'
-  	:hook ((prog-mode . corfu-mode)
-  			  (shell-mode . corfu-mode)
-  			  (eshell-mode . corfu-mode))
-      :bind
-      (:map corfu-map
+    :custom
+    (corfu-auto t)
+    (corfu-cycle t) ;; Enable cycling for `corfu-next/previous'
+    :hook ((prog-mode . corfu-mode)
+  	 (shell-mode . corfu-mode)
+  	 (eshell-mode . corfu-mode))
+    :bind
+    (:map corfu-map
           ;;     ("TAB" . corfu-next)
           ;;     ("C-n" . corfu-next)
           ;;     ([tab] . corfu-next)
           ;;     ("C-p" . corfu-previous)
           ;;     ("S-TAB" . corfu-previous)
           ;;     ([backtab] . corfu-previous)
-  		("M-<backspace>" . backward-kill-word)
-  		("C-<backspace>" . backward-kill-word)
-          ("ESC" . corfu-quit)))
+  	("M-<backspace>" . backward-kill-word)
+  	("C-<backspace>" . backward-kill-word)
+  	;; ("ESC" . corfu-quit)
+  	))
 #+end_src
 
 I also want to delay the completion a little bit, instead of it popping up immediately. I have this code set up to add a time delay of 0.2 seconds; however, the corfu documentation states that this can create lag, so I’ve commented it out for now.
 #+begin_src emacs-lisp
-;;  (setq corfu-auto-delay 0.2)
+  (setq corfu-auto-delay 0)
+  (setq corfu-auto-prefix 2)
 #+end_src
 ** Fuzzy Matching
 I use orderless to give completions fuzzy matching. This particular bit of code is copied directly from the Shane Kennedy blog post.
@@ -618,7 +636,8 @@ I also have a few custom templates for CDLatex.
            ("lim" "Insert limit" "\\lim_{?}" cdlatex-position-cursor nil nil t)
            ("()" "Insert inline math" "\\(?\\)" cdlatex-position-cursor nil t nil)
   	 ("tt" "Insert \\text{}" "\\text{?}" cdlatex-position-cursor nil nil t)
-           ("hb" "Insert \\hbar" "\\hbar" nil nil nil t)))
+           ("hb" "Insert \\hbar" "\\hbar" nil nil nil t)
+  	 ("bb" "Insert \\mathbb" "\\mathbb " nil nil nil t)))
 #+end_src
 
 Similarly, some templates for modifying text:
@@ -1170,4 +1189,147 @@ This is kind of stupid, but I sometimes have the C modifier key held down when s
 #+begin_src emacs-lisp
   (global-set-key (kbd "C-<wheel-up>") nil)
   (global-set-key (kbd "C-<wheel-down>") nil)
+#+end_src
+
+** Emacs Everywhere
+I’m really not sure what I think about this, but I’ll try emacs-everywhere and see if I end up using it.
+#+begin_src emacs-lisp
+  (use-package emacs-everywhere
+    :ensure t)
+#+end_src
+
+I also need to set a specific server directory:
+#+begin_src emacs-lisp :tangle no
+  (setq server-socket-dir "~/.emacs.d/server")
+#+end_src
+
+** Better Documentation
+I’ll use the helpful package to improve help windows.
+#+begin_src emacs-lisp
+  (use-package helpful
+    :ensure t)
+#+end_src
+
+* EVIL
+** General Setup
+I’m gonna try evil.
+
+#+begin_src emacs-lisp
+  ;; Enable Evil
+  (use-package evil
+    :init
+    (setq evil-want-integration t) ;; This is optional since it's already set to t by default.
+    (setq evil-want-keybinding nil) ;; Required for evil-collection to work properly
+    (setq evil-want-C-u-scroll t)   ;; Allow C-u to scroll up like in Vim
+    (setq evil-want-C-i-jump t)     ;; Allow C-i to jump forward like in Vim
+    :config
+    (evil-mode 1))
+#+end_src
+
+** Collection
+And I guess I have to use evil-collection for it to work with my other packages:
+
+#+begin_src emacs-lisp
+  (use-package evil-collection
+    :after evil
+    :ensure t
+    :config
+    (evil-collection-init))
+#+end_src
+
+** Comments
+I’m going to use the evil package for commenting, to see if I prefer it to my normal style.
+#+begin_src emacs-lisp
+  (use-package evil-commentary
+    :config
+    (evil-commentary-mode))
+#+end_src
+
+** Escape Sequence
+Escape to escape makes sense, but I’d like to rebind it to something a little closer to home (literally).
+#+begin_src emacs-lisp
+  (use-package evil-escape
+    :ensure t
+    :init
+    (setq-default evil-escape-key-sequence "jk")
+    (setq-default evil-escape-delay 0.15)
+    :config
+    (evil-escape-mode 1))
+#+end_src
+
+** Visual Line vs Logical Line
+I want to move by visual line and not by logical line.
+#+begin_src emacs-lisp
+  (define-key evil-normal-state-map (kbd "j") 'evil-next-visual-line)
+  (define-key evil-normal-state-map (kbd "k") 'evil-previous-visual-line)
+  (define-key evil-normal-state-map (kbd "gj") 'evil-next-line)
+  (define-key evil-normal-state-map (kbd "gk") 'evil-previous-line)
+#+end_src
+
+** Leader Key
+I want to use the spacebar as a leader, doom-style. I therefore have a big list of commands here:
+#+begin_src emacs-lisp
+  (require 'ibuffer)
+  (require 'helpful)
+  (require 'magit)
+  (use-package general
+    :ensure t
+    :config
+    ;; Tell general to integrate with Evil
+    (general-evil-setup t)
+
+    ;; Create a custom definer for your leader keys
+    (general-create-definer my-leader-def
+  			  :states '(normal visual insert emacs)
+  			  :keymaps 'override
+  			  :prefix "SPC"
+  			  ;; This allows you to use Alt+Space as the leader in insert mode
+  			  :non-normal-prefix "M-SPC") 
+
+    ;; Now define your keybindings using your new definer
+    (my-leader-def
+     "SPC" 'execute-extended-command ;; SPC SPC for M-x
+     "."   'find-file
+     ","   'switch-to-buffer
+     "s"   'save-buffer
+
+     ;; File commands
+     "f"   '(:ignore t :which-key "file")
+     "ff"  'find-file
+     "fs"  'save-buffer
+
+     ;; Buffer commands
+     "b"   '(:ignore t :which-key "buffer")
+     "bb"  'switch-to-buffer
+     "bi"  'ibuffer-other-window
+     "bk"  'kill-buffer
+     "bd"  'kill-current-buffer
+
+     ;; Help commands
+     "h"   '(:ignore t :which-key "describe")
+     "hf"  'helpful-callable
+     "hv"  'helpful-variable
+     "hm"  'describe-mode
+     "hk"  'helpful-key
+
+     ;; Window commands
+     "w"   '(:ignore t :which-key "window")
+     "wc"  'delete-window
+     "ww"  'delete-other-windows
+     "wr"  'split-window-right
+     "wd"  'split-window-below
+     "wh"  'evil-window-left
+     "wj"  'evil-window-down
+     "wk"  'evil-window-up
+     "wl"  'evil-window-right
+
+     ;; Quit commands
+     "q"   '(:ignore t :which-key "quit")
+     "qr"  'restart-emacs
+     "qq"  'save-buffers-kill-terminal
+
+     ;; Magit commands
+     "g"   '(:ignore t :which-key "magit")
+     "gg"  'magit-status))
+
 #+end_src
