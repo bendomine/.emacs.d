@@ -40,7 +40,12 @@
 (global-set-key (kbd "M-F") 'forward-sexp)
 (global-set-key (kbd "M-B") 'backward-sexp)
 
-(pixel-scroll-precision-mode)
+(use-package ultra-scroll
+  :init
+  (setq scroll-conservatively 3 ; or whatever value you prefer, since v0.4
+	scroll-margin 0)        ; important: scroll-margin>0 not yet supported
+  :config
+  (ultra-scroll-mode 1))
 
 (use-package nerd-icons
     :custom
@@ -333,7 +338,7 @@ point reaches the beginning or end of the buffer, stop there."
 (setq cdlatex-command-alist
     '(("lap" "Insert Laplace transform" "\\mathcal L {" cdlatex-lr-pair nil nil t)
          ("ilap" "Insert inverse Laplace transform" "\\mathcal L^{-1} {" cdlatex-lr-pair nil nil t)
-         ("lim" "Insert limit" "\\lim_{?}" cdlatex-position-cursor nil nil t)
+         ("lim" "Insert limit" "\\lim\\limits_{?}" cdlatex-position-cursor nil nil t)
          ("()" "Insert inline math" "\\(?\\)" cdlatex-position-cursor nil t nil)
 	 ("tt" "Insert \\text{}" "\\text{?}" cdlatex-position-cursor nil nil t)
          ("hb" "Insert \\hbar" "\\hbar" nil nil nil t)
@@ -466,6 +471,8 @@ point reaches the beginning or end of the buffer, stop there."
   (add-to-list 'eglot-server-programs
                '(html-mode . ("vscode-html-language-server" "--stdio"))))
 
+(setq eldoc-idle-delay 0.0)
+
 ;; (if (eq system-type 'darwin)
 ;; 	(setq lsp-clients-clangd-executable "/opt/homebrew/bin/clangd"))
 
@@ -512,10 +519,19 @@ point reaches the beginning or end of the buffer, stop there."
          ("M-p" . flymake-goto-prev-error)) ; Move to previous error
   :hook (prog-mode . flymake-mode))
 
+(setq flymake-no-changes-timeout 0.0)
+
 (use-package magit)
 
 (use-package forge
   :after magit)
+
+(use-package git-gutter
+  :ensure t)
+
+(global-git-gutter-mode +1)
+
+(setq git-gutter:update-interval 0.5)
 
 (use-package indent-bars
   :ensure t
@@ -537,7 +553,7 @@ point reaches the beginning or end of the buffer, stop there."
         ;; beyond the end of an indented block. Setting it to `nil' will cause
         ;; gaps in the indent guides, which looks odd. `least' is a good
         ;; compromise, and doesn't suffer the scrolling issue.
-        indent-bars-display-on-blank-lines 'least))
+        indent-bars-display-on-blank-lines t))
 
 (add-hook 'prog-mode-hook 'display-line-numbers-mode)
 (setq display-line-numbers-width-start t)
@@ -763,6 +779,7 @@ point reaches the beginning or end of the buffer, stop there."
 (require 'helpful)
 (require 'magit)
 (require 'projectile)
+(require 'consult)
 (use-package general
   :ensure t
   :config
@@ -781,8 +798,9 @@ point reaches the beginning or end of the buffer, stop there."
   (my-leader-def
    "SPC" 'execute-extended-command ;; SPC SPC for M-x
    "."   'find-file
-   ","   'switch-to-buffer
+   ","   'consult-buffer
    "s"   'save-buffer
+   "cc"  'compile
 
    ;; File commands
    "f"   '(:ignore t :which-key "file")
@@ -791,10 +809,11 @@ point reaches the beginning or end of the buffer, stop there."
 
    ;; Buffer commands
    "b"   '(:ignore t :which-key "buffer")
-   "bb"  'switch-to-buffer
+   "bb"  'consult-buffer
    "bi"  'ibuffer-other-window
    "bk"  'kill-buffer
    "bd"  'kill-current-buffer
+   "br"  'revert-buffer-quick
 
    ;; Help commands
    "h"   '(:ignore t :which-key "describe")
@@ -827,4 +846,13 @@ point reaches the beginning or end of the buffer, stop there."
    "p"   '(:ignore t :which-key "projectile")
    "pp"  'projectile-switch-project
    "pf"  'projectile-find-file
-   "pa"  'projectile-add-known-project))
+   "pa"  'projectile-add-known-project
+
+   ;; Tab commands
+   "t"   '(:ignore t :which-key "tabs")
+   "tt"  'tab-new
+   "tc"  'tab-close
+   "tr"  'tab-rename
+   "tl"  'tab-next
+   "th"  'tab-previous
+   "t SPC" 'tab-switch))

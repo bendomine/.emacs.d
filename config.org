@@ -98,9 +98,14 @@ The built-in keybindings for forward- and backward-sexp are prefixed with C-M-. 
 
 * UI
 ** Scrolling
-I want precision pixel scrolling, meaning that when I use the scroll wheel I want smooth scrolling instead of line-by-line scrolling. This obviously only has an impact in GUI mode. Also, it can cause lag depending on the machine and version/port of emacs!
+I’ll use the ultra-scroll package for better smooth scrolling.
 #+begin_src emacs-lisp
-  (pixel-scroll-precision-mode)
+  (use-package ultra-scroll
+    :init
+    (setq scroll-conservatively 3 ; or whatever value you prefer, since v0.4
+  	scroll-margin 0)        ; important: scroll-margin>0 not yet supported
+    :config
+    (ultra-scroll-mode 1))
 #+end_src
 
 ** Icons
@@ -636,7 +641,7 @@ I also have a few custom templates for CDLatex.
   (setq cdlatex-command-alist
       '(("lap" "Insert Laplace transform" "\\mathcal L {" cdlatex-lr-pair nil nil t)
            ("ilap" "Insert inverse Laplace transform" "\\mathcal L^{-1} {" cdlatex-lr-pair nil nil t)
-           ("lim" "Insert limit" "\\lim_{?}" cdlatex-position-cursor nil nil t)
+           ("lim" "Insert limit" "\\lim\\limits_{?}" cdlatex-position-cursor nil nil t)
            ("()" "Insert inline math" "\\(?\\)" cdlatex-position-cursor nil t nil)
   	 ("tt" "Insert \\text{}" "\\text{?}" cdlatex-position-cursor nil nil t)
            ("hb" "Insert \\hbar" "\\hbar" nil nil nil t)
@@ -837,6 +842,12 @@ I want to use the built-in eglot for LSP stuff.
                  '(html-mode . ("vscode-html-language-server" "--stdio"))))
 #+end_src
 
+I also want to disable the delay used by eldoc before I get documentation displayed. This could get very annoying in the future, but it seems ok for now.
+
+#+begin_src emacs-lisp
+  (setq eldoc-idle-delay 0.0)
+#+end_src
+
 ** Language Servers
 For c++, I want to use clangd. I’m going to assume this is already installed via homebrew on mac:
 #+begin_src emacs-lisp
@@ -910,6 +921,12 @@ I’ll use the built-in flymake package for linting. This should require minimal
     :hook (prog-mode . flymake-mode))
 #+end_src
 
+I want flymake to have no delay. This may cause significant lag, so I may not keep it:
+
+#+begin_src emacs-lisp
+  (setq flymake-no-changes-timeout 0.0)
+#+end_src
+
 ** Version Control
 For help with version control, I’ll use magit. I currently don’t have this customized at all.
 #+begin_src emacs-lisp
@@ -922,6 +939,14 @@ I also want to use forge, which is the magit integration with git forges like gi
     :after magit)
 #+end_src
 
+** Version Control Gutters
+I want to highlight git diffs line-by-line using diff-hl.
+#+begin_src emacs-lisp
+  (use-package diff-hl
+    :ensure t)
+  (global-diff-hl-mode)
+  (diff-hl-flydiff-mode t)
+#+end_src
 ** Indentation
 I want indentation lines to be displayed, so I’ll use the indent-bars package.
 #+begin_src emacs-lisp
@@ -945,7 +970,7 @@ I want indentation lines to be displayed, so I’ll use the indent-bars package.
           ;; beyond the end of an indented block. Setting it to `nil' will cause
           ;; gaps in the indent guides, which looks odd. `least' is a good
           ;; compromise, and doesn't suffer the scrolling issue.
-          indent-bars-display-on-blank-lines 'least))
+          indent-bars-display-on-blank-lines t))
 #+end_src
 
 ** Line numbers
@@ -1291,6 +1316,7 @@ I want to use the spacebar as a leader, doom-style. I therefore have a big list 
   (require 'helpful)
   (require 'magit)
   (require 'projectile)
+  (require 'consult)
   (use-package general
     :ensure t
     :config
@@ -1309,8 +1335,9 @@ I want to use the spacebar as a leader, doom-style. I therefore have a big list 
     (my-leader-def
      "SPC" 'execute-extended-command ;; SPC SPC for M-x
      "."   'find-file
-     ","   'switch-to-buffer
+     ","   'consult-buffer
      "s"   'save-buffer
+     "cc"  'compile
 
      ;; File commands
      "f"   '(:ignore t :which-key "file")
@@ -1319,10 +1346,11 @@ I want to use the spacebar as a leader, doom-style. I therefore have a big list 
 
      ;; Buffer commands
      "b"   '(:ignore t :which-key "buffer")
-     "bb"  'switch-to-buffer
+     "bb"  'consult-buffer
      "bi"  'ibuffer-other-window
      "bk"  'kill-buffer
      "bd"  'kill-current-buffer
+     "br"  'revert-buffer-quick
 
      ;; Help commands
      "h"   '(:ignore t :which-key "describe")
