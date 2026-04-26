@@ -10,7 +10,7 @@
 (load "~/.emacs.d/my-delete.el")
 
 (tool-bar-mode -1)
-(add-to-list 'default-frame-alist '(fullscreen . maximized))
+;; (add-to-list 'default-frame-alist '(fullscreen . maximized))
 (set-frame-parameter nil 'ns-appearance 'dark)
 
 (defmacro append-to-list (target suffix)
@@ -135,12 +135,6 @@
               (last (cdr bounds)))
         (pulse-momentary-highlight-region first last)))
 
-(require 'avy)
-
-(advice-add 'avy-goto-char-timer :after #'pulse-symbol-at-point)
-
-(add-hook 'isearch-mode-end-hook #'pulse-symbol-at-point)
-
 (use-package ace-window)
 (bind-key* "M-o" 'ace-window)
 
@@ -158,6 +152,38 @@
 			(set-mark-command t))))
 
 ;; (global-set-key (kbd "C-/") 'my/comment-uncomment)
+
+(use-package pulsar
+  :ensure t
+  :init
+  (pulsar-global-mode 1)
+  :config
+  (setq pulsar-face 'highlight
+	pulsar-region-face 'highlight
+	pulsar-region-change-face 'highlight
+	pulsar-highlight-face 'highlight
+	pulsar-window-change-face 'highlight
+	pulsar-pulse-functions (add-to-list 'pulsar-pulse-functions 'evil-avy-goto-char)
+	pulsar-pulse-functions (add-to-list 'pulsar-pulse-functions 'evil-search-next)
+	pulsar-pulse-functions (add-to-list 'pulsar-pulse-functions 'evil-search-previous)))
+
+(require 'consult)
+(add-hook 'consult-after-jump-hook #'pulsar-recenter-top)
+(add-hook 'consult-after-jump-hook #'pulsar-reveal-entry)
+
+(defun pulsar-high-quality (enable)
+  "Set high quality pulsar pulses.
+Enable if ENABLE is greater than 0."
+  (interactive)
+  (if (> enable 0)
+      (setq pulsar-iterations 15
+	    pulsar-delay 0.02)
+    (setq pulsar-iterations 1
+	  pulsar-delay 0.2)))
+
+(if (display-graphic-p)
+    (pulsar-high-quality 1)
+    (pulsar-high-quality -1))
 
 (use-package scroll-restore)
 
@@ -245,6 +271,63 @@ point reaches the beginning or end of the buffer, stop there."
 ;; remap C-a to `smarter-move-beginning-of-line'
 ;;(global-set-key [remap move-beginning-of-line]
                ;; 'smarter-move-beginning-of-line)
+
+(add-hook 'tty-setup-hook #'xterm-mouse-mode)
+(add-hook 'tty-setup-hook (lambda () (menu-bar-mode -1)))
+
+(setq xterm-set-window-title t)
+
+(setq dired-listing-switches
+      "-l --almost-all --human-readable --group-directories-first --no-group")
+;; this command is useful when you want to close the window of `dirvish-side'
+;; automatically when opening a file
+(put 'dired-find-alternate-file 'disabled nil)
+
+(use-package dirvish
+  :ensure t
+  :init
+  (dirvish-override-dired-mode)
+  :custom
+  (dirvish-quick-access-entries ; It's a custom option, `setq' won't work
+   '(("h" "~/"                          "Home")
+     ("d" "~/Downloads/"                "Downloads")
+     ("m" "/mnt/"                       "Drives")
+     ("t" "~/.local/share/Trash/files/" "TrashCan")))
+  :config
+  ;; (dirvish-peek-mode)             ; Preview files in minibuffer
+  ;; (dirvish-side-follow-mode)      ; similar to `treemacs-follow-mode'
+  (setq dirvish-mode-line-format
+        '(:left (sort symlink) :right (omit yank index)))
+  (setq dirvish-attributes           ; The order *MATTERS* for some attributes
+        '(vc-state subtree-state nerd-icons collapse git-msg file-time file-size)
+        dirvish-side-attributes
+        '(vc-state nerd-icons collapse file-size))
+  ;; open large directory (over 20000 files) asynchronously with `fd' command
+  (setq dirvish-large-directory-threshold 20000)
+  ;; Prevent buffers from lying around
+  (setq dirvish-reuse-session nil)
+  ;; Delete by moving to trash
+  (setq delete-by-moving-to-trash t)
+  :bind ; Bind `dirvish-fd|dirvish-side|dirvish-dwim' as you see fit
+  (("C-c f" . dirvish)
+   :map dirvish-mode-map               ; Dirvish inherits `dired-mode-map'
+   (";"   . dired-up-directory)        ; So you can adjust `dired' bindings here
+   ("?"   . dirvish-dispatch)          ; [?] a helpful cheatsheet
+   ("a"   . dirvish-setup-menu)        ; [a]ttributes settings:`t' toggles mtime, `f' toggles fullframe, etc.
+   ("f"   . dirvish-file-info-menu)    ; [f]ile info
+   ("o"   . dirvish-quick-access)      ; [o]pen `dirvish-quick-access-entries'
+   ("s"   . dirvish-quicksort)         ; [s]ort flie list
+   ("r"   . dirvish-history-jump)      ; [r]ecent visited
+   ("l"   . dirvish-ls-switches-menu)  ; [l]s command flags
+   ("v"   . dirvish-vc-menu)           ; [v]ersion control commands
+   ("*"   . dirvish-mark-menu)
+   ("y"   . dirvish-yank-menu)
+   ("N"   . dirvish-narrow)
+   ("^"   . dirvish-history-last)
+   ("TAB" . dirvish-subtree-toggle)
+   ("M-f" . dirvish-history-go-forward)
+   ("M-b" . dirvish-history-go-backward)
+   ("M-e" . dirvish-emerge-menu)))
 
 (use-package which-key
     :ensure t
@@ -526,12 +609,10 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package forge
   :after magit)
 
-(use-package git-gutter
+(use-package diff-hl
   :ensure t)
-
-(global-git-gutter-mode +1)
-
-(setq git-gutter:update-interval 0.5)
+(global-diff-hl-mode)
+(diff-hl-flydiff-mode t)
 
 (use-package indent-bars
   :ensure t
@@ -728,10 +809,48 @@ point reaches the beginning or end of the buffer, stop there."
         (when (bound-and-true-p centaur-tabs-mode) (if (or centaur-tabs-mode centaur-tabs-local-mode) (centaur-tabs-local-mode)))
         (message "")))
 
-(add-hook 'window-setup-hook (lambda ()
-                                 (run-at-time "0.3 sec" nil #'bendomine/splash-screen)))
+(use-package dashboard
+  :ensure t
+  :config
+  (dashboard-setup-startup-hook)
+  (setq dashboard-center-content t
+	dashboard-vertically-center-content t
+	dashboard-icon-type 'nerd-icons
+	dashboard-startup-banner 'logo-braille
+	dashboard-set-heading-icons t
+	dashboard-set-file-icons t
+	dashboard-navigation-cycle t
+	dashboard-banner-ascii (propertize "+---------------------------------------------------------+\n| 8888888888888b     d888       d8888 .d8888b.  .d8888b.  |\n| 888       8888b   d8888      d88888d88P  Y88bd88P  Y88b |\n| 888       88888b.d88888     d88P888888    888Y88b.      |\n| 8888888   888Y88888P888    d88P 888888        \"Y888b.   |\n| 888       888 Y888P 888   d88P  888888           \"Y88b. |\n| 888       888  Y8P  888  d88P   888888    888      \"888 |\n| 888       888   \"   888 d8888888888Y88b  d88PY88b  d88P |\n| 8888888888888       888d88P     888 \"Y8888P\"  \"Y8888P\"  |\n+---------------------------------------------------------+" 'face '(:foreground black))
+	dashboard-startup-banner 'ascii
+	dashboard-items '((projects . 8)
+			  (recents  . 5))
+	dashboard-startupify-list '(dashboard-insert-banner
+				    dashboard-insert-newline
+				    dashboard-insert-banner-title
+				    dashboard-insert-newline
+				    dashboard-insert-navigator
+				    dashboard-insert-newline
+				    dashboard-insert-init-info
+				    dashboard-insert-newline
+				    dashboard-insert-items)))
 
-
+;; Format: "(icon title help action face prefix suffix)"
+(setq dashboard-navigator-buttons
+      `(;; First line
+	((,(nerd-icons-faicon "nf-fa-gears" :height 1.1 :v-adjust 0.0)
+	 "Config"
+	 "Open config"
+	 (lambda (&rest _) (config))
+	 nil
+	 ""
+	 "")
+	 (,(nerd-icons-mdicon "nf-md-backup_restore" :height 1.1 :v-adjust 0.0)
+	  "Restore"
+	  "Restore session"
+	  (lambda (&rest _) (desktop-read))
+	  nil
+	  ""
+	  ""))))
 
 (global-set-key (kbd "C-<wheel-up>") nil)
 (global-set-key (kbd "C-<wheel-down>") nil)
@@ -856,3 +975,7 @@ point reaches the beginning or end of the buffer, stop there."
    "tl"  'tab-next
    "th"  'tab-previous
    "t SPC" 'tab-switch))
+
+;; Fix for dirvish-mode-map not being loaded
+(require 'dirvish)
+(evil-make-overriding-map dirvish-mode-map 'normal)

@@ -28,15 +28,16 @@
  '(org-support-shift-select t)
  '(package-selected-packages
    '(auctex cdlatex consult consult-projectile corfu corfu-prescient
-	    diff-hl doom-modeline doom-themes emacs-everywhere
-	    emmet-mode evil evil-collection evil-commentary
-	    evil-escape evil-tutor exec-path-from-shell flycheck forge
-	    gdscript-mode general git-gutter helpful
-	    highlight-indent-guides indent-bars lsp-treemacs magit
-	    marginalia multiple-cursors olivetti orderless org-modern
-	    org-roam-ui prescient scroll-restore smartparens
-	    treemacs-projectile treesit ultra-scroll valign
-	    vertico-posframe vertico-prescient yasnippet))
+	    dashboard diff-hl dired dirvish doom-modeline doom-themes
+	    emacs-everywhere emmet-mode evil evil-collection
+	    evil-commentary evil-escape evil-tutor
+	    exec-path-from-shell flycheck forge gdscript-mode general
+	    git-gutter helpful highlight-indent-guides indent-bars
+	    lsp-treemacs magit marginalia multiple-cursors olivetti
+	    orderless org-modern org-roam-ui prescient pulsar
+	    scroll-restore smartparens treemacs-projectile treesit
+	    ultra-scroll valign vertico-posframe vertico-prescient
+	    yasnippet))
  '(ring-bell-function 'ignore)
  '(safe-local-variable-directories
    '("/Users/bendomine/Documents/Coding/CSE 3601/lab-04-bendomine/"))
