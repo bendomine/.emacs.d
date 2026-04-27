@@ -96,14 +96,15 @@
     (add-hook 'server-after-make-frame-hook #'my-setup-tab-bar-faces)
   (my-setup-tab-bar-faces))
 
-(add-hook 'tab-bar-mode-hook (lambda () (setq tab-bar-close-button
-	#(" " 0 1
-	 (close-tab t rear-nonsticky t help-echo "Click to close tab" face
-		 (:box nil) display
-		 (image :type svg :file
-			 "/opt/homebrew/Cellar/emacs-plus@30/30.2/share/emacs/30.2/etc/images/symbols/cross_16.svg"
-			 :height (1 . em) :scale 1 :margin 1 :ascent center
-			 :transform-smoothing t))))))
+(add-hook 'tab-bar-mode-hook
+	  (lambda()
+	    (let ((new-button (copy-sequence tab-bar-close-button)))
+	      (put-text-property 0 (length new-button)
+				 'face
+				 '(:box nil) new-button)
+	      (setq tab-bar-close-button new-button))))
+
+(setq tab-bar-new-tab-choice "*dashboard*")
 
 (use-package vertico-posframe
     :after vertico
@@ -304,6 +305,8 @@ point reaches the beginning or end of the buffer, stop there."
         '(vc-state nerd-icons collapse file-size))
   ;; open large directory (over 20000 files) asynchronously with `fd' command
   (setq dirvish-large-directory-threshold 20000)
+
+  (setq insert-directory-program "gls")
   ;; Prevent buffers from lying around
   (setq dirvish-reuse-session nil)
   ;; Delete by moving to trash
@@ -410,6 +413,7 @@ point reaches the beginning or end of the buffer, stop there."
 
 (package-install 'olivetti)
 (setq olivetti-body-width 0.6)
+(setq olivetti-minimum-body-width 80)
 (add-hook 'org-mode-hook #'olivetti-mode)
 
 (add-hook 'org-mode-hook 'org-indent-mode)
@@ -832,7 +836,8 @@ point reaches the beginning or end of the buffer, stop there."
 				    dashboard-insert-newline
 				    dashboard-insert-init-info
 				    dashboard-insert-newline
-				    dashboard-insert-items)))
+				    dashboard-insert-items)
+	initial-buffer-choice (lambda () (get-buffer-create dashboard-buffer-name))))
 
 ;; Format: "(icon title help action face prefix suffix)"
 (setq dashboard-navigator-buttons
@@ -860,6 +865,9 @@ point reaches the beginning or end of the buffer, stop there."
 
 (use-package helpful
   :ensure t)
+
+(load "~/.emacs.d/vi-tilde-fringe.el")
+(add-hook 'prog-mode-hook #'vi-tilde-fringe-mode)
 
 ;; Enable Evil
 (use-package evil

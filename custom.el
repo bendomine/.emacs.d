@@ -5,13 +5,13 @@
  ;; If there is more than one, they won't work right.
  '(cursor-type 'bar)
  '(custom-safe-themes
-   '("8c7e832be864674c220f9a9361c851917a93f921fedb7717b1b5ece47690c098"
+   '("0325a6b5eea7e5febae709dab35ec8648908af12cf2d2b569bedc8da0a3a81c1"
+     "8c7e832be864674c220f9a9361c851917a93f921fedb7717b1b5ece47690c098"
      "dd4582661a1c6b865a33b89312c97a13a3885dc95992e2e5fc57456b4c545176"
      default))
  '(display-battery-mode t)
  '(display-time-mode t)
  '(electric-quote-mode t)
- '(fringe-mode '(1 . 1) nil (fringe))
  '(inhibit-startup-screen t)
  '(org-agenda-files '("~/Documents/PHYS4011/Midterm/review.org"))
  '(org-babel-python-command "python3")
@@ -37,7 +37,7 @@
 	    orderless org-modern org-roam-ui prescient pulsar
 	    scroll-restore smartparens treemacs-projectile treesit
 	    ultra-scroll valign vertico-posframe vertico-prescient
-	    yasnippet))
+	    vi-tilde-fringe vi-tilde-fringe-mode yasnippet))
  '(ring-bell-function 'ignore)
  '(safe-local-variable-directories
    '("/Users/bendomine/Documents/Coding/CSE 3601/lab-04-bendomine/"))

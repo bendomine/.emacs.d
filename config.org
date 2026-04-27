@@ -206,14 +206,18 @@ I want to move away from centaur-tabs, as it’s a very buggy and generally anno
 The above face adds an underline, but the box face messes with the underline on the close button for some reason. SETUP TAB BAR: replace the file path below with the file path found in ~tab-bar-close-button~ without any customization.
 
 #+begin_src emacs-lisp
-  (add-hook 'tab-bar-mode-hook (lambda () (setq tab-bar-close-button
-  	#(" " 0 1
-  	 (close-tab t rear-nonsticky t help-echo "Click to close tab" face
-  		 (:box nil) display
-  		 (image :type svg :file
-  			 "/opt/homebrew/Cellar/emacs-plus@30/30.2/share/emacs/30.2/etc/images/symbols/cross_16.svg"
-  			 :height (1 . em) :scale 1 :margin 1 :ascent center
-  			 :transform-smoothing t))))))
+  (add-hook 'tab-bar-mode-hook
+  	  (lambda()
+  	    (let ((new-button (copy-sequence tab-bar-close-button)))
+  	      (put-text-property 0 (length new-button)
+  				 'face
+  				 '(:box nil) new-button)
+  	      (setq tab-bar-close-button new-button))))
+#+end_src
+
+Finally, I want to open in the dashboard:
+#+begin_src emacs-lisp
+  (setq tab-bar-new-tab-choice "*dashboard*")
 #+end_src
 
 ** Minibuffer
@@ -565,6 +569,8 @@ Just for fun, I’m going to try Dirvish as a better file browser. I’ll start 
           '(vc-state nerd-icons collapse file-size))
     ;; open large directory (over 20000 files) asynchronously with `fd' command
     (setq dirvish-large-directory-threshold 20000)
+
+    (setq insert-directory-program "gls")
     ;; Prevent buffers from lying around
     (setq dirvish-reuse-session nil)
     ;; Delete by moving to trash
@@ -735,6 +741,7 @@ I also want my documents centered when on a larger screen, so I’ll use Olivett
 #+begin_src emacs-lisp
   (package-install 'olivetti)
   (setq olivetti-body-width 0.6)
+  (setq olivetti-minimum-body-width 80)
   (add-hook 'org-mode-hook #'olivetti-mode)
 #+end_src
 
@@ -1361,7 +1368,8 @@ I’m gonna try the emacs-dashboard package to see if it’s better than what I 
   				    dashboard-insert-newline
   				    dashboard-insert-init-info
   				    dashboard-insert-newline
-  				    dashboard-insert-items)))
+  				    dashboard-insert-items)
+  	initial-buffer-choice (lambda () (get-buffer-create dashboard-buffer-name))))
 #+end_src
 
 Next, I’ll customize the navigator:
@@ -1409,6 +1417,13 @@ I’ll use the helpful package to improve help windows.
 #+begin_src emacs-lisp
   (use-package helpful
     :ensure t)
+#+end_src
+
+** Fringe Tildes
+This is dumb. But I’ll try adding the vi-tilde-fringe package, just to see if I like it.
+#+begin_src emacs-lisp
+  (load "~/.emacs.d/vi-tilde-fringe.el")
+  (add-hook 'prog-mode-hook #'vi-tilde-fringe-mode)
 #+end_src
 
 * EVIL
