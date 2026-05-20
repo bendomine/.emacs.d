@@ -101,6 +101,7 @@ The built-in keybindings for forward- and backward-sexp are prefixed with C-M-. 
 I’ll use the ultra-scroll package for better smooth scrolling.
 #+begin_src emacs-lisp
   (use-package ultra-scroll
+    :ensure t
     :init
     (setq scroll-conservatively 3 ; or whatever value you prefer, since v0.4
   	scroll-margin 0)        ; important: scroll-margin>0 not yet supported
@@ -136,6 +137,7 @@ This is a short list of themes I like:
 For now I’ll just go with dark+.
 #+begin_src emacs-lisp :results silent
   (use-package doom-themes
+    :ensure t
       :init
       (load-theme 'doom-dracula))
 #+end_src
@@ -229,6 +231,12 @@ Using vertico-posframe, it’s possible to have the minibuffer in the center of 
       (setq vertico-posframe-handler
           'posframe-poshandler-frame-center)
       (vertico-posframe-mode 1))
+#+end_src
+
+** Dialog Boxes
+I’m using emacs, why the hell would I want dialog boxes?
+#+begin_src emacs-lisp
+  (setq use-dialog-box nil)
 #+end_src
 
 * Core Editing
@@ -1001,7 +1009,9 @@ I’ll use tree-sitter for completion. It’s included with emacs now, but this 
     :config
     (setq treesit-language-source-alist
           '((python "https://github.com/tree-sitter/tree-sitter-python")
-            (javascript "https://github.com/tree-sitter/tree-sitter-javascript")
+  	  (nix "https://github.com/nix-community/tree-sitter-nix")
+  	  (lua "https://github.com/tree-sitter-grammars/tree-sitter-lua.git")
+            (Javascript "https://github.com/tree-sitter/tree-sitter-javascript")
             (cpp "https://github.com/tree-sitter/tree-sitter-cpp")
             (c "https://github.com/tree-sitter/tree-sitter-c")
             (java "https://github.com/tree-sitter/tree-sitter-java")
@@ -1018,6 +1028,7 @@ I also want to remap most programming modes to use their treesit counterparts:
         '((python-mode     . python-ts-mode)
           (c-mode          . c-ts-mode)
           (c++-mode        . c++-ts-mode)
+  	(nix-mode        . nix-ts-mode)
           (js-mode         . js-ts-mode)
   	(javascript-mode . js-ts-mode)
           (java-mode       . java-ts-mode)
@@ -1167,10 +1178,39 @@ I’m going to want this to be a pretty easy command to execute quickly.
   (keymap-set org-babel-map "C-v" 'my/org-babel-execute-session)
 #+end_src
 
+** Jupyter Notebooks
+If emacs is better than Jupyter notebooks, then emacs /with/ jupyter notebooks is better than everything! Or something. I’ll use the emacs-ipython-notebook (EIN) package to integrate the two.
+
+#+begin_src emacs-lisp
+  (use-package ein
+    :ensure t
+    :config
+    (with-eval-after-load 'ein-notebook
+      (my-leader-def
+        :predicate '(or (derived-mode-p 'ein:notebook-mode)
+  		      (bound-and-true-p ein:notebook-multilang-mode))
+        ;; Override SPC s to save notebook
+        "s"    #'ein:notebook-save-notebook-command
+
+        ;; Prefix: c
+        "c"    '(:ignore t :which-key "ein")
+        "cc"   #'ein:worksheet-execute-cell
+        "ca"   #'ein:worksheet-insert-cell-above
+        "cb"   #'ein:worksheet-insert-cell-below
+        "cd"   #'ein:worksheet-delete-cell)))
+#+end_src
+
 ** Godot
 I’ll add Godot’s emacs package.
 #+begin_src emacs-lisp
   (use-package gdscript-mode)
+#+end_src
+
+** Nix
+I want to use nix:
+#+begin_src emacs-lisp
+  (use-package nix-mode :ensure t)
+  (use-package nix-ts-mode :ensure t)
 #+end_src
 
 ** Authentication
