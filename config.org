@@ -331,9 +331,10 @@ I’ll try the pulsar.el package from Protesilaos instead of defining my own.
 
 I’ll also use the consult integration:
 #+begin_src emacs-lisp
+  (with-eval-after-load 'consult
   (require 'consult)
   (add-hook 'consult-after-jump-hook #'pulsar-recenter-top)
-  (add-hook 'consult-after-jump-hook #'pulsar-reveal-entry)
+  (add-hook 'consult-after-jump-hook #'pulsar-reveal-entry))
 #+end_src
 
 I want to implement a sort of quality system, where we can either use lots of pulsar highlight iterations for a nice smooth animation or just a couple iterations for something blocky but fast.
@@ -679,14 +680,15 @@ I use orderless to give completions fuzzy matching. This particular bit of code 
 ** Searching
 I’ll use Consult for better searching. When I say "use" I don’t actually mean use, because I haven’t figured it out yet. However, I’ll install it for now.
 #+begin_src emacs-lisp :tangle no
-(use-package consult
-        :hook (completion-list-mode . consult-preview-at-point-mode)
-        :custom
-        (consult-preview-key nil)
-        (consult-narrow-key nil)
-        :config
-        (consult-customize consult-theme consult-line consult-line-at-point :preview-key '(:debounce 0.2 any))
-        )
+  (use-package consult
+          :ensure t
+          :hook (completion-list-mode . consult-preview-at-point-mode)
+          :custom
+          (consult-preview-key nil)
+          (consult-narrow-key nil)
+          :config
+          (consult-customize consult-theme consult-line consult-line-at-point :preview-key '(:debounce 0.2 any))
+          )
 #+end_src
 
 #+begin_src emacs-lisp

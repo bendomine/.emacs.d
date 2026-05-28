@@ -172,9 +172,10 @@
 	pulsar-pulse-functions (add-to-list 'pulsar-pulse-functions 'evil-search-next)
 	pulsar-pulse-functions (add-to-list 'pulsar-pulse-functions 'evil-search-previous)))
 
+(with-eval-after-load 'consult
 (require 'consult)
 (add-hook 'consult-after-jump-hook #'pulsar-recenter-top)
-(add-hook 'consult-after-jump-hook #'pulsar-reveal-entry)
+(add-hook 'consult-after-jump-hook #'pulsar-reveal-entry))
 
 (defun pulsar-high-quality (enable)
   "Set high quality pulsar pulses.
