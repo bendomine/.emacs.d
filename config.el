@@ -41,6 +41,7 @@
 (global-set-key (kbd "M-B") 'backward-sexp)
 
 (use-package ultra-scroll
+  :ensure t
   :init
   (setq scroll-conservatively 3 ; or whatever value you prefer, since v0.4
 	scroll-margin 0)        ; important: scroll-margin>0 not yet supported
@@ -53,6 +54,7 @@
     )
 
 (use-package doom-themes
+  :ensure t
     :init
     (load-theme 'doom-dracula))
 
@@ -112,6 +114,8 @@
     (setq vertico-posframe-handler
         'posframe-poshandler-frame-center)
     (vertico-posframe-mode 1))
+
+(setq use-dialog-box nil)
 
 (use-package projectile
     :ensure t
@@ -306,7 +310,7 @@ point reaches the beginning or end of the buffer, stop there."
   ;; open large directory (over 20000 files) asynchronously with `fd' command
   (setq dirvish-large-directory-threshold 20000)
 
-  (setq insert-directory-program "gls")
+  ;; (setq insert-directory-program "gls")
   ;; Prevent buffers from lying around
   (setq dirvish-reuse-session nil)
   ;; Delete by moving to trash
@@ -545,8 +549,6 @@ point reaches the beginning or end of the buffer, stop there."
 (org-babel-do-load-languages
 	'org-babel-load-languages '((python . t)))
 
-(setq org-babel-python-command "/usr/bin/python3")
-
 (use-package eglot
   :ensure t
   :hook ((python-ts-mode . eglot-ensure)
@@ -578,7 +580,9 @@ point reaches the beginning or end of the buffer, stop there."
   :config
   (setq treesit-language-source-alist
         '((python "https://github.com/tree-sitter/tree-sitter-python")
-          (javascript "https://github.com/tree-sitter/tree-sitter-javascript")
+	  (nix "https://github.com/nix-community/tree-sitter-nix")
+	  (lua "https://github.com/tree-sitter-grammars/tree-sitter-lua.git")
+          (Javascript "https://github.com/tree-sitter/tree-sitter-javascript")
           (cpp "https://github.com/tree-sitter/tree-sitter-cpp")
           (c "https://github.com/tree-sitter/tree-sitter-c")
           (java "https://github.com/tree-sitter/tree-sitter-java")
@@ -592,11 +596,13 @@ point reaches the beginning or end of the buffer, stop there."
       '((python-mode     . python-ts-mode)
         (c-mode          . c-ts-mode)
         (c++-mode        . c++-ts-mode)
+	(nix-mode        . nix-ts-mode)
         (js-mode         . js-ts-mode)
 	(javascript-mode . js-ts-mode)
         (java-mode       . java-ts-mode)
         (css-mode        . css-ts-mode)
         (html-mode       . html-ts-mode)
+	(lua-mode        . lua-ts-mode)
         (typescript-mode . typescript-ts-mode)))
 
 (add-hook 'prog-mode-hook #'hl-line-mode)
@@ -685,7 +691,18 @@ point reaches the beginning or end of the buffer, stop there."
 
 (keymap-set org-babel-map "C-v" 'my/org-babel-execute-session)
 
+(use-package ox-ipynb
+  :ensure t
+  :vc (:url "https://github.com/jkitchin/ox-ipynb"
+	    :rev :newest))
+
 (use-package gdscript-mode)
+
+(use-package nix-mode :ensure t)
+(use-package nix-ts-mode :ensure t)
+
+(use-package lua-mode
+  :ensure t)
 
 (setq auth-sources "~/.authinfo.gpg")
 
@@ -744,6 +761,9 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package exec-path-from-shell
     :config
     (exec-path-from-shell-initialize))
+
+(use-package envrc
+:hook (after-init . envrc-global-mode))
 
 (defun center-and-newline (text)
       "Insert the provided TEXT, center and newline."
@@ -866,9 +886,6 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package helpful
   :ensure t)
 
-(load "~/.emacs.d/vi-tilde-fringe.el")
-(add-hook 'prog-mode-hook #'vi-tilde-fringe-mode)
-
 ;; Enable Evil
 (use-package evil
   :init
@@ -916,7 +933,7 @@ point reaches the beginning or end of the buffer, stop there."
   ;; Create a custom definer for your leader keys
   (general-create-definer my-leader-def
 			  :states '(normal visual insert emacs)
-			  :keymaps 'override
+			  ;; :keymaps 'override
 			  :prefix "SPC"
 			  ;; This allows you to use Alt+Space as the leader in insert mode
 			  :non-normal-prefix "M-SPC") 

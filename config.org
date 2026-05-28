@@ -578,7 +578,7 @@ Just for fun, I’m going to try Dirvish as a better file browser. I’ll start 
     ;; open large directory (over 20000 files) asynchronously with `fd' command
     (setq dirvish-large-directory-threshold 20000)
 
-    (setq insert-directory-program "gls")
+    ;; (setq insert-directory-program "gls")
     ;; Prevent buffers from lying around
     (setq dirvish-reuse-session nil)
     ;; Delete by moving to trash
@@ -951,7 +951,7 @@ In order to use org mode’s excellent Babel feature, I need to include the lang
 #+end_src
 
 This fixes python, hopefully, but is system dependent:
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (setq org-babel-python-command "/usr/bin/python3")
 #+end_src
 
@@ -1034,6 +1034,7 @@ I also want to remap most programming modes to use their treesit counterparts:
           (java-mode       . java-ts-mode)
           (css-mode        . css-ts-mode)
           (html-mode       . html-ts-mode)
+  	(lua-mode        . lua-ts-mode)
           (typescript-mode . typescript-ts-mode)))
 #+end_src
 
@@ -1181,7 +1182,7 @@ I’m going to want this to be a pretty easy command to execute quickly.
 ** Jupyter Notebooks
 If emacs is better than Jupyter notebooks, then emacs /with/ jupyter notebooks is better than everything! Or something. I’ll use the emacs-ipython-notebook (EIN) package to integrate the two.
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package ein
     :ensure t
     :config
@@ -1189,6 +1190,7 @@ If emacs is better than Jupyter notebooks, then emacs /with/ jupyter notebooks i
       (my-leader-def
         :predicate '(or (derived-mode-p 'ein:notebook-mode)
   		      (bound-and-true-p ein:notebook-multilang-mode))
+        :keymaps 'override
         ;; Override SPC s to save notebook
         "s"    #'ein:notebook-save-notebook-command
 
@@ -1198,6 +1200,26 @@ If emacs is better than Jupyter notebooks, then emacs /with/ jupyter notebooks i
         "ca"   #'ein:worksheet-insert-cell-above
         "cb"   #'ein:worksheet-insert-cell-below
         "cd"   #'ein:worksheet-delete-cell)))
+#+end_src
+
+But ein is buggy, so instead I’m going to try an unholy combination of emacs-jupyter, which provides jupyter kernel interaction in org mode, and ox-ipynb, which allows me to export those org files into ipynb files.
+
+First, emacs-jupyter:
+#+begin_src emacs-lisp :tangle no
+      (use-package jupyter
+        :ensure t
+        :vc (:url "https://github.com/emacs-jupyter/jupyter"
+  		:rev "a0871ba"))
+      (org-babel-do-load-languages
+      	'org-babel-load-languages '((jupyter . t)))
+#+end_src
+
+And now ox-ipynb:
+#+begin_src emacs-lisp
+  (use-package ox-ipynb
+    :ensure t
+    :vc (:url "https://github.com/jkitchin/ox-ipynb"
+  	    :rev :newest))
 #+end_src
 
 ** Godot
@@ -1211,6 +1233,13 @@ I want to use nix:
 #+begin_src emacs-lisp
   (use-package nix-mode :ensure t)
   (use-package nix-ts-mode :ensure t)
+#+end_src
+
+** Lua
+Similarly, I want to use Lua:
+#+begin_src emacs-lisp
+    (use-package lua-mode
+      :ensure t)
 #+end_src
 
 ** Authentication
@@ -1299,6 +1328,14 @@ This one has come highly recommended; env variables should be grabbed from the s
       :config
       (exec-path-from-shell-initialize))
 #+end_src
+
+** envrc
+Trying envrc so that I can run stuff in nixos.
+#+begin_src emacs-lisp
+  (use-package envrc
+  :hook (after-init . envrc-global-mode))
+#+end_src
+
 ** Splash Screen
 This is my custom splash screen. I’ll begin by defining a function for convenience. This inserts some text, centers it in the buffer, and then adds a newline.
 #+begin_src emacs-lisp
@@ -1461,7 +1498,7 @@ I’ll use the helpful package to improve help windows.
 
 ** Fringe Tildes
 This is dumb. But I’ll try adding the vi-tilde-fringe package, just to see if I like it.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (load "~/.emacs.d/vi-tilde-fringe.el")
   (add-hook 'prog-mode-hook #'vi-tilde-fringe-mode)
 #+end_src
@@ -1539,7 +1576,7 @@ I want to use the spacebar as a leader, doom-style. I therefore have a big list 
     ;; Create a custom definer for your leader keys
     (general-create-definer my-leader-def
   			  :states '(normal visual insert emacs)
-  			  :keymaps 'override
+  			  ;; :keymaps 'override
   			  :prefix "SPC"
   			  ;; This allows you to use Alt+Space as the leader in insert mode
   			  :non-normal-prefix "M-SPC") 

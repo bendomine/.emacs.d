@@ -13,6 +13,7 @@
  '(display-time-mode t)
  '(electric-quote-mode t)
  '(inhibit-startup-screen t)
+ '(menu-bar-mode nil)
  '(org-agenda-files '("~/Documents/PHYS4011/Midterm/review.org"))
  '(org-babel-python-command "python3")
  '(org-confirm-babel-evaluate nil)
@@ -27,17 +28,16 @@
  '(org-safe-remote-resources '("\\`https://imgs\\.xkcd\\.com\\(?:/\\|\\'\\)"))
  '(org-support-shift-select t)
  '(package-selected-packages
-   '(auctex cdlatex consult consult-projectile corfu corfu-prescient
-	    dashboard diff-hl dired dirvish doom-modeline doom-themes
-	    emacs-everywhere emmet-mode evil evil-collection
-	    evil-commentary evil-escape evil-tutor
-	    exec-path-from-shell flycheck forge gdscript-mode general
-	    git-gutter helpful highlight-indent-guides indent-bars
-	    lsp-treemacs magit marginalia multiple-cursors olivetti
-	    orderless org-modern org-roam-ui prescient pulsar
-	    scroll-restore smartparens treemacs-projectile treesit
-	    ultra-scroll valign vertico-posframe vertico-prescient
-	    vi-tilde-fringe vi-tilde-fringe-mode yasnippet))
+   '(auctex cdlatex consult-projectile corfu-prescient dashboard diff-hl
+	    dirvish doom-modeline doom-themes emacs-everywhere
+	    emmet-mode envrc evil-collection evil-commentary
+	    evil-escape exec-path-from-shell forge gdscript-mode
+	    general helpful indent-bars lua-mode marginalia nix-mode
+	    nix-ts-mode olivetti orderless org-modern org-roam-ui
+	    ox-ipynb pulsar scroll-restore smartparens
+	    treemacs-projectile ultra-scroll valign vertico-posframe
+	    vertico-prescient yasnippet))
+ '(package-vc-selected-packages '((ox-ipynb :url "https://github.com/jkitchin/ox-ipynb")))
  '(ring-bell-function 'ignore)
  '(safe-local-variable-directories
    '("/Users/bendomine/Documents/Coding/CSE 3601/lab-04-bendomine/"))
