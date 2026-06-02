@@ -583,6 +583,8 @@ point reaches the beginning or end of the buffer, stop there."
         '((python "https://github.com/tree-sitter/tree-sitter-python")
 	  (nix "https://github.com/nix-community/tree-sitter-nix")
 	  (lua "https://github.com/tree-sitter-grammars/tree-sitter-lua.git")
+	  (qml "https://github.com/yuja/tree-sitter-qmljs")
+	  (json "https://github.com/tree-sitter/tree-sitter-json")
           (Javascript "https://github.com/tree-sitter/tree-sitter-javascript")
           (cpp "https://github.com/tree-sitter/tree-sitter-cpp")
           (c "https://github.com/tree-sitter/tree-sitter-c")
@@ -598,12 +600,14 @@ point reaches the beginning or end of the buffer, stop there."
         (c-mode          . c-ts-mode)
         (c++-mode        . c++-ts-mode)
 	(nix-mode        . nix-ts-mode)
+	(qml-mode        . qml-ts-mode)
         (js-mode         . js-ts-mode)
 	(javascript-mode . js-ts-mode)
         (java-mode       . java-ts-mode)
         (css-mode        . css-ts-mode)
         (html-mode       . html-ts-mode)
 	(lua-mode        . lua-ts-mode)
+	(json-mode       . json-ts-mode)
         (typescript-mode . typescript-ts-mode)))
 
 (add-hook 'prog-mode-hook #'hl-line-mode)
@@ -703,6 +707,9 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package nix-ts-mode :ensure t)
 
 (use-package lua-mode
+  :ensure t)
+
+(use-package qml-mode
   :ensure t)
 
 (setq auth-sources "~/.authinfo.gpg")
@@ -934,7 +941,7 @@ point reaches the beginning or end of the buffer, stop there."
   ;; Create a custom definer for your leader keys
   (general-create-definer my-leader-def
 			  :states '(normal visual insert emacs)
-			  ;; :keymaps 'override
+			  :keymaps 'override
 			  :prefix "SPC"
 			  ;; This allows you to use Alt+Space as the leader in insert mode
 			  :non-normal-prefix "M-SPC") 

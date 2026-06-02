@@ -27,7 +27,16 @@
  '(org-return-follows-link t)
  '(org-safe-remote-resources '("\\`https://imgs\\.xkcd\\.com\\(?:/\\|\\'\\)"))
  '(org-support-shift-select t)
- '(package-selected-packages nil)
+ '(package-selected-packages
+   '(auctex cdlatex consult-projectile corfu-prescient dashboard diff-hl
+	    dirvish doom-modeline doom-themes emacs-everywhere
+	    emmet-mode envrc evil-collection evil-commentary
+	    evil-escape exec-path-from-shell forge gdscript-mode
+	    general helpful indent-bars lua-mode marginalia nix-mode
+	    nix-ts-mode olivetti orderless org-modern org-roam-ui
+	    ox-ipynb pulsar qml-mode scroll-restore smartparens
+	    treemacs-projectile ultra-scroll valign vertico-posframe
+	    vertico-prescient yasnippet))
  '(package-vc-selected-packages '((ox-ipynb :url "https://github.com/jkitchin/ox-ipynb")))
  '(ring-bell-function 'ignore)
  '(safe-local-variable-directories
