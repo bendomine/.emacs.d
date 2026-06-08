@@ -581,7 +581,7 @@ Just for fun, I’m going to try Dirvish as a better file browser. I’ll start 
 
     ;; (setq insert-directory-program "gls")
     ;; Prevent buffers from lying around
-    (setq dirvish-reuse-session nil)
+    ;; (setq dirvish-reuse-session nil)
     ;; Delete by moving to trash
     (setq delete-by-moving-to-trash t)
     :bind ; Bind `dirvish-fd|dirvish-side|dirvish-dwim' as you see fit
@@ -1033,7 +1033,7 @@ I also want to remap most programming modes to use their treesit counterparts:
           (c-mode          . c-ts-mode)
           (c++-mode        . c++-ts-mode)
   	(nix-mode        . nix-ts-mode)
-  	(qml-mode        . qml-ts-mode)
+  	;; (qml-mode        . qml-ts-mode)
           (js-mode         . js-ts-mode)
   	(javascript-mode . js-ts-mode)
           (java-mode       . java-ts-mode)
@@ -1552,7 +1552,7 @@ I’m going to use the evil package for commenting, to see if I prefer it to my 
 
 ** Escape Sequence
 Escape to escape makes sense, but I’d like to rebind it to something a little closer to home (literally).
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package evil-escape
     :ensure t
     :init

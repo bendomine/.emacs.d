@@ -600,7 +600,7 @@ point reaches the beginning or end of the buffer, stop there."
         (c-mode          . c-ts-mode)
         (c++-mode        . c++-ts-mode)
 	(nix-mode        . nix-ts-mode)
-	(qml-mode        . qml-ts-mode)
+	;; (qml-mode        . qml-ts-mode)
         (js-mode         . js-ts-mode)
 	(javascript-mode . js-ts-mode)
         (java-mode       . java-ts-mode)
@@ -913,14 +913,6 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package evil-commentary
   :config
   (evil-commentary-mode))
-
-(use-package evil-escape
-  :ensure t
-  :init
-  (setq-default evil-escape-key-sequence "jk")
-  (setq-default evil-escape-delay 0.15)
-  :config
-  (evil-escape-mode 1))
 
 (define-key evil-normal-state-map (kbd "j") 'evil-next-visual-line)
 (define-key evil-normal-state-map (kbd "k") 'evil-previous-visual-line)
