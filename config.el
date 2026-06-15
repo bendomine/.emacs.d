@@ -313,7 +313,7 @@ point reaches the beginning or end of the buffer, stop there."
 
   ;; (setq insert-directory-program "gls")
   ;; Prevent buffers from lying around
-  (setq dirvish-reuse-session nil)
+  ;; (setq dirvish-reuse-session nil)
   ;; Delete by moving to trash
   (setq delete-by-moving-to-trash t)
   :bind ; Bind `dirvish-fd|dirvish-side|dirvish-dwim' as you see fit

@@ -606,6 +606,16 @@ Just for fun, I’m going to try Dirvish as a better file browser. I’ll start 
      ("M-e" . dirvish-emerge-menu)))
 #+end_src
 
+** Unbind Buffer
+I sometimes want to "unbind" a buffer from the file it’s visiting. This is largely useful if I want to leave an old version of the file open while changing it. It’s only required because I like to have auto-revert on.
+
+#+begin_src emacs-lisp
+  (defun unbind-buffer ()
+    "Unbind the current buffer from whatever file it may be visiting."
+    (interactive)
+    (set-visited-file-name nil)
+    (set-buffer-modified-p nil))
+#+end_src
 * Completions and Search
 ** Keybinding Completion
 I’ll use the which-key package to help with completions for keybindings.
@@ -1018,6 +1028,7 @@ I’ll use tree-sitter for completion. It’s included with emacs now, but this 
             (Javascript "https://github.com/tree-sitter/tree-sitter-javascript")
             (cpp "https://github.com/tree-sitter/tree-sitter-cpp")
             (c "https://github.com/tree-sitter/tree-sitter-c")
+  	  (glsl "https://github.com/tree-sitter-grammars/tree-sitter-glsl")
             (java "https://github.com/tree-sitter/tree-sitter-java")
             (css "https://github.com/tree-sitter/tree-sitter-css")
             (html "https://github.com/tree-sitter/tree-sitter-html"))))
@@ -1252,6 +1263,12 @@ Similarly, I want to use Lua:
 I’ll use qml-mode:
 #+begin_src emacs-lisp
   (use-package qml-mode
+    :ensure t)
+#+end_src
+** GLSL
+I’ll include a major mode for GLSL:
+#+begin_src emacs-lisp
+  (use-package glsl-mode
     :ensure t)
 #+end_src
 ** Authentication
@@ -1613,6 +1630,7 @@ I want to use the spacebar as a leader, doom-style. I therefore have a big list 
      "bk"  'kill-buffer
      "bd"  'kill-current-buffer
      "br"  'revert-buffer-quick
+     "bR"  'rename-buffer
 
      ;; Help commands
      "h"   '(:ignore t :which-key "describe")
