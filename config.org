@@ -1623,6 +1623,9 @@ I want to use the spacebar as a leader, doom-style. I therefore have a big list 
      "ff"  'find-file
      "fs"  'save-buffer
 
+     ;; Editing commands
+     "xh"  'mark-whole-buffer
+
      ;; Buffer commands
      "b"   '(:ignore t :which-key "buffer")
      "bb"  'consult-buffer

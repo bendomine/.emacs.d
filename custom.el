@@ -34,9 +34,10 @@
 	    evil-escape exec-path-from-shell forge gdscript-mode
 	    general glsl-mode helpful indent-bars lua-mode marginalia
 	    nix-mode nix-ts-mode olivetti orderless org-modern
-	    org-roam-ui ox-ipynb pulsar qml-mode scroll-restore
-	    smartparens treemacs-projectile ultra-scroll valign
-	    vertico-posframe vertico-prescient yasnippet))
+	    org-roam-ui ox-ipynb pulsar qml-mode scroll-on-jump
+	    scroll-restore smartparens treemacs-projectile
+	    ultra-scroll valign vertico-posframe vertico-prescient
+	    yasnippet))
  '(package-vc-selected-packages '((ox-ipynb :url "https://github.com/jkitchin/ox-ipynb")))
  '(ring-bell-function 'ignore)
  '(safe-local-variable-directories

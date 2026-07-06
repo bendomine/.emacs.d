@@ -337,6 +337,12 @@ point reaches the beginning or end of the buffer, stop there."
    ("M-b" . dirvish-history-go-backward)
    ("M-e" . dirvish-emerge-menu)))
 
+(defun unbind-buffer ()
+  "Unbind the current buffer from whatever file it may be visiting."
+  (interactive)
+  (set-visited-file-name nil)
+  (set-buffer-modified-p nil))
+
 (use-package which-key
     :ensure t
     :config
@@ -588,6 +594,7 @@ point reaches the beginning or end of the buffer, stop there."
           (Javascript "https://github.com/tree-sitter/tree-sitter-javascript")
           (cpp "https://github.com/tree-sitter/tree-sitter-cpp")
           (c "https://github.com/tree-sitter/tree-sitter-c")
+	  (glsl "https://github.com/tree-sitter-grammars/tree-sitter-glsl")
           (java "https://github.com/tree-sitter/tree-sitter-java")
           (css "https://github.com/tree-sitter/tree-sitter-css")
           (html "https://github.com/tree-sitter/tree-sitter-html"))))
@@ -710,6 +717,9 @@ point reaches the beginning or end of the buffer, stop there."
   :ensure t)
 
 (use-package qml-mode
+  :ensure t)
+
+(use-package glsl-mode
   :ensure t)
 
 (setq auth-sources "~/.authinfo.gpg")
@@ -951,6 +961,9 @@ point reaches the beginning or end of the buffer, stop there."
    "ff"  'find-file
    "fs"  'save-buffer
 
+   ;; Editing commands
+   "xh"  'mark-whole-buffer
+
    ;; Buffer commands
    "b"   '(:ignore t :which-key "buffer")
    "bb"  'consult-buffer
@@ -958,6 +971,7 @@ point reaches the beginning or end of the buffer, stop there."
    "bk"  'kill-buffer
    "bd"  'kill-current-buffer
    "br"  'revert-buffer-quick
+   "bR"  'rename-buffer
 
    ;; Help commands
    "h"   '(:ignore t :which-key "describe")
