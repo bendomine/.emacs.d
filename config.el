@@ -117,6 +117,11 @@
 
 (setq use-dialog-box nil)
 
+(setq window-divider-default-bottom-width 2)
+(setq window-divider-default-right-width 2)
+(set-face-attribute 'window-divider nil :inherit 'highlight)
+(window-divider-mode t)
+
 (use-package projectile
     :ensure t
     :init
@@ -142,6 +147,7 @@
 
 (use-package ace-window)
 (bind-key* "M-o" 'ace-window)
+(setq aw-dispatch-always t)
 
 (defun my/comment-uncomment ()
 	"Runs comment-uncomment on the region if active, or the current line if not."
@@ -1013,6 +1019,7 @@ point reaches the beginning or end of the buffer, stop there."
    "tr"  'tab-rename
    "tl"  'tab-next
    "th"  'tab-previous
+   "tm" 'tab-move
    "t SPC" 'tab-switch))
 
 ;; Fix for dirvish-mode-map not being loaded

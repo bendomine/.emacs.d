@@ -239,6 +239,15 @@ I’m using emacs, why the hell would I want dialog boxes?
   (setq use-dialog-box nil)
 #+end_src
 
+** Window Dividers
+I’ll try out the window dividers just to see what I feel about them.
+#+begin_src emacs-lisp
+  (setq window-divider-default-bottom-width 2)
+  (setq window-divider-default-right-width 2)
+  (set-face-attribute 'window-divider nil :inherit 'highlight)
+  (window-divider-mode t)
+#+end_src
+
 * Core Editing
 ** Project Management
 I originally used project.el, but I’ve decided to try projectile instead. I’ll add that now:
@@ -291,6 +300,7 @@ I also want the ability to jump between windows, for which purpose I believe ace
 #+begin_src emacs-lisp
   (use-package ace-window)
   (bind-key* "M-o" 'ace-window)
+  (setq aw-dispatch-always t)
 #+end_src
 ** Commenting
 I want commenting to work like in most editors. Specifically, I want to run comment-or-uncomment region; I want to run it on the region if it’s active, or the current line if not.
@@ -1128,8 +1138,8 @@ I want line numbers when programming. The last two lines here make sure the line
 #+begin_src emacs-lisp
   (add-hook 'prog-mode-hook 'display-line-numbers-mode)
   (setq display-line-numbers-width-start t)
+  (setq display-line-numbers-type 'relative)
   (setq display-line-numbers-grow-only t)
-
 #+end_src
 
 ** Parentheses
@@ -1675,6 +1685,7 @@ I want to use the spacebar as a leader, doom-style. I therefore have a big list 
      "tr"  'tab-rename
      "tl"  'tab-next
      "th"  'tab-previous
+     "tm" 'tab-move
      "t SPC" 'tab-switch))
 
 #+end_src
