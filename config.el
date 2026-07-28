@@ -134,8 +134,8 @@
 (use-package avy
     :ensure t
     :config
-    (setq avy-timeout-seconds 0.15)
-    :bind (("M-j" . avy-goto-char)))
+    (setq avy-timeout-seconds 0.15))
+(bind-key* "M-j" 'avy-goto-char)
 
 (defun pulse-symbol-at-point ()
     "Briefly pulse the symbol under the current point."
@@ -666,13 +666,14 @@ point reaches the beginning or end of the buffer, stop there."
 
 (add-hook 'prog-mode-hook 'display-line-numbers-mode)
 (setq display-line-numbers-width-start t)
+(setq display-line-numbers-type 'relative)
 (setq display-line-numbers-grow-only t)
 
 ;; (add-hook 'prog-mode-hook 'electric-pair-local-mode)
 
 (use-package smartparens
   :ensure smartparens
-  :hook (prog-mode text-mode markdown-mode)
+  :hook (prog-mode)
   :config
   (require 'smartparens-config))
 
