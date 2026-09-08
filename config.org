@@ -558,9 +558,17 @@ I’ll also try to set the window title:
   (setq xterm-set-window-title t)
 #+end_src
 
+I’ve had consistent issues with the emacs terminal emulators, so I’ll try the vterm package in the hopes that it can solve some of these issues.
+
+#+begin_src emacs-lisp
+  (use-package vterm
+    :ensure t)
+#+end_src
+
 ** File Browser
 Just for fun, I’m going to try Dirvish as a better file browser. I’ll start by using their provided sample configuration.
 #+begin_src emacs-lisp
+  (setq insert-directory-program "gls" dired-use-ls-dired t)
   (setq dired-listing-switches
         "-l --almost-all --human-readable --group-directories-first --no-group")
   ;; this command is useful when you want to close the window of `dirvish-side'
@@ -597,14 +605,14 @@ Just for fun, I’m going to try Dirvish as a better file browser. I’ll start 
     :bind ; Bind `dirvish-fd|dirvish-side|dirvish-dwim' as you see fit
     (("C-c f" . dirvish)
      :map dirvish-mode-map               ; Dirvish inherits `dired-mode-map'
-     (";"   . dired-up-directory)        ; So you can adjust `dired' bindings here
+     ("h"   . dired-up-directory)        ; So you can adjust `dired' bindings here
      ("?"   . dirvish-dispatch)          ; [?] a helpful cheatsheet
      ("a"   . dirvish-setup-menu)        ; [a]ttributes settings:`t' toggles mtime, `f' toggles fullframe, etc.
      ("f"   . dirvish-file-info-menu)    ; [f]ile info
      ("o"   . dirvish-quick-access)      ; [o]pen `dirvish-quick-access-entries'
      ("s"   . dirvish-quicksort)         ; [s]ort flie list
      ("r"   . dirvish-history-jump)      ; [r]ecent visited
-     ("l"   . dirvish-ls-switches-menu)  ; [l]s command flags
+     ("l"   . dired-find-file)  ; [l]s command flags
      ("v"   . dirvish-vc-menu)           ; [v]ersion control commands
      ("*"   . dirvish-mark-menu)
      ("y"   . dirvish-yank-menu)
@@ -625,6 +633,13 @@ I sometimes want to "unbind" a buffer from the file it’s visiting. This is lar
     (interactive)
     (set-visited-file-name nil)
     (set-buffer-modified-p nil))
+#+end_src
+** PDF Reading
+Emacs’ built-in pdf reader is pretty annoying to use, and most importantly, lags like crazy whenever it tries to render a large pdf. This is because it attempts to store the whole rendered pdf in memory at once, as opposed to a modern viewer, which renders pages on demand. I’ll therefore use the pdf-tools package to alleviate this issue:
+
+#+begin_src emacs-lisp
+  (use-package pdf-tools
+    :ensure t)
 #+end_src
 * Completions and Search
 ** Keybinding Completion
@@ -878,20 +893,25 @@ I’ll want to create some custom capture templates at some point, so I’ll ove
 #+begin_src emacs-lisp
   (setq org-roam-capture-templates
         '(("d" "default" plain "%?"
-    	 :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
-    			    "#+title: ${title}\n")
-    	 :unnarrowed t
+  	 :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
+  			    "#+title: ${title}\n")
+  	 :unnarrowed t
   	 :empty-lines 1
   	 )
   	("p" "physics" plain "%?"
-    	 :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
-    			    "#+startup: latexpreview\n#+latex_header: \\usepackage{physics}\n#+filetags: :physics:\n#+title: ${title}")
-    	 :unnarrowed t
+  	 :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
+  			    "#+startup: latexpreview\n#+latex_header: \\usepackage{physics}\n#+filetags: :physics:\n#+title: ${title}")
+  	 :unnarrowed t
+  	 )
+  	("s" "statistics" plan "%?"
+  	 :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
+  			    "#+startup: latexpreview\n#+filetags: :statistics:\n#+title: ${title}")
+  	 :unnarrowed t
   	 )
   	("m" "math" plain "%?"
-    	 :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
-    			    "#+startup: latexpreview\n#+filetags: :math:\n#+title: ${title}")
-    	 :unnarrowed t
+  	 :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
+  			    "#+startup: latexpreview\n#+filetags: :math:\n#+title: ${title}")
+  	 :unnarrowed t
   	 )))
 #+end_src
 
@@ -969,7 +989,9 @@ I’m noticing that table alignment fails when using things like previewed latex
 In order to use org mode’s excellent Babel feature, I need to include the languages I want to use here:
 #+begin_src emacs-lisp
   (org-babel-do-load-languages
-  	'org-babel-load-languages '((python . t)))
+   'org-babel-load-languages '((python . t)
+  			     (jupyter . t)
+  			     (R . t)))
 #+end_src
 
 This fixes python, hopefully, but is system dependent:
@@ -986,6 +1008,7 @@ I want to use the built-in eglot for LSP stuff.
     :hook ((python-ts-mode . eglot-ensure)
            (c-ts-mode      . eglot-ensure)
            (c++-ts-mode    . eglot-ensure)
+  	 (rust-ts-mode   . eglot-ensure)
            (js-ts-mode     . eglot-ensure)
            (java-ts-mode   . eglot-ensure))
     :config
@@ -1038,6 +1061,7 @@ I’ll use tree-sitter for completion. It’s included with emacs now, but this 
             (Javascript "https://github.com/tree-sitter/tree-sitter-javascript")
             (cpp "https://github.com/tree-sitter/tree-sitter-cpp")
             (c "https://github.com/tree-sitter/tree-sitter-c")
+  	  (rust "https://github.com/tree-sitter/tree-sitter-rust")
   	  (glsl "https://github.com/tree-sitter-grammars/tree-sitter-glsl")
             (java "https://github.com/tree-sitter/tree-sitter-java")
             (css "https://github.com/tree-sitter/tree-sitter-css")
@@ -1149,7 +1173,7 @@ I’ve historically just used the built-in electric-pair-mode.
 #+end_src
 
 However, I’m going to try smartparens instead:
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package smartparens
     :ensure smartparens
     :hook (prog-mode)
@@ -1170,6 +1194,13 @@ And here’s the binding of that handler:
 #+begin_src emacs-lisp
   (require 'smartparens)
   (sp-local-pair 'prog-mode "{" nil :post-handlers '((my/newline-and-indent-handler "RET")))
+#+end_src
+
+** Composed Characters
+I’ve just heard of prettify-symbols-mode, which should allow composed characters. I’ll try to enable that for all programming buffers:
+
+#+begin_src emacs-lisp
+  (add-hook 'prog-mode-hook #'prettify-symbols-mode)
 #+end_src
 
 ** Python
@@ -1233,12 +1264,10 @@ But ein is buggy, so instead I’m going to try an unholy combination of emacs-j
 
 First, emacs-jupyter:
 #+begin_src emacs-lisp :tangle no
-      (use-package jupyter
-        :ensure t
-        :vc (:url "https://github.com/emacs-jupyter/jupyter"
+  (use-package jupyter
+    :ensure t
+    :vc (:url "https://github.com/emacs-jupyter/jupyter"
   		:rev "a0871ba"))
-      (org-babel-do-load-languages
-      	'org-babel-load-languages '((jupyter . t)))
 #+end_src
 
 And now ox-ipynb:
@@ -1280,6 +1309,21 @@ I’ll include a major mode for GLSL:
 #+begin_src emacs-lisp
   (use-package glsl-mode
     :ensure t)
+#+end_src
+** SML
+SML, for CSE 4205:
+#+begin_src emacs-lisp
+  (use-package sml-mode
+    :ensure t)
+#+end_src
+** Rust
+I’ll use rust-mode for rust.
+#+begin_src emacs-lisp
+  (use-package rust-mode
+    :ensure t
+    :init
+    (setq rust-mode-treesitter-derive t))
+  (setq rust-format-on-save t)
 #+end_src
 ** Authentication
 I want to use only one file for keeping secrets and other authentication tokens, authinfo.gpg.
@@ -1357,6 +1401,25 @@ I want to have a minor mode for writing text in emacs. This minor mode should ov
   		(kill-local-variable 'face-remapping-alist)
   		(olivetti-mode -1)
   		(setq-local mode-line-format writing--mode-line-format)))
+#+end_src
+** Markdown
+I’ll use pandoc as my markdown command.
+
+#+begin_src emacs-lisp
+  (require 'markdown-mode)
+  (setq markdown-command "pandoc")
+#+end_src
+
+* Integrations
+** Claude Code
+This is the first AI integration I’m adding to my emacs config. I currently use claude code as my primary AI tool, so I’ll use a package specifically for that. Note that this requires claude code to be installed.
+
+#+begin_src emacs-lisp
+  (use-package claude-code-ide
+    :vc (:url "https://github.com/manzaltu/claude-code-ide.el" :rev :newest)
+    :bind ("C-c C-'" . claude-code-ide-menu) ; Set your favorite keybinding
+    :config
+    (claude-code-ide-emacs-tools-setup)) ; Optionally enable Emacs MCP tools
 #+end_src
 
 * Miscellaneous
@@ -1542,6 +1605,13 @@ This is dumb. But I’ll try adding the vi-tilde-fringe package, just to see if 
   (add-hook 'prog-mode-hook #'vi-tilde-fringe-mode)
 #+end_src
 
+** Statistics
+I’ll use ESS for statistics.
+#+begin_src emacs-lisp
+  (use-package ess
+    :ensure t)
+  (load "ess-autoloads")
+#+end_src
 * EVIL
 ** General Setup
 I’m gonna try evil.
@@ -1567,6 +1637,12 @@ And I guess I have to use evil-collection for it to work with my other packages:
     :ensure t
     :config
     (evil-collection-init))
+#+end_src
+
+Evil-collection's Outline module binds normal-state ~M-j~ to =outline-move-subtree-down=, and since =org-mode-map= inherits from =outline-mode-map=, that binding leaks into Org buffers and shadows my Avy binding. Rebind it back directly on =org-mode-map= so Avy wins in Org.
+#+begin_src emacs-lisp
+  (with-eval-after-load 'org
+    (evil-collection-define-key 'normal 'org-mode-map (kbd "M-j") 'avy-goto-char))
 #+end_src
 
 ** Comments

@@ -289,6 +289,10 @@ point reaches the beginning or end of the buffer, stop there."
 
 (setq xterm-set-window-title t)
 
+(use-package vterm
+  :ensure t)
+
+(setq insert-directory-program "gls" dired-use-ls-dired t)
 (setq dired-listing-switches
       "-l --almost-all --human-readable --group-directories-first --no-group")
 ;; this command is useful when you want to close the window of `dirvish-side'
@@ -325,14 +329,14 @@ point reaches the beginning or end of the buffer, stop there."
   :bind ; Bind `dirvish-fd|dirvish-side|dirvish-dwim' as you see fit
   (("C-c f" . dirvish)
    :map dirvish-mode-map               ; Dirvish inherits `dired-mode-map'
-   (";"   . dired-up-directory)        ; So you can adjust `dired' bindings here
+   ("h"   . dired-up-directory)        ; So you can adjust `dired' bindings here
    ("?"   . dirvish-dispatch)          ; [?] a helpful cheatsheet
    ("a"   . dirvish-setup-menu)        ; [a]ttributes settings:`t' toggles mtime, `f' toggles fullframe, etc.
    ("f"   . dirvish-file-info-menu)    ; [f]ile info
    ("o"   . dirvish-quick-access)      ; [o]pen `dirvish-quick-access-entries'
    ("s"   . dirvish-quicksort)         ; [s]ort flie list
    ("r"   . dirvish-history-jump)      ; [r]ecent visited
-   ("l"   . dirvish-ls-switches-menu)  ; [l]s command flags
+   ("l"   . dired-find-file)  ; [l]s command flags
    ("v"   . dirvish-vc-menu)           ; [v]ersion control commands
    ("*"   . dirvish-mark-menu)
    ("y"   . dirvish-yank-menu)
@@ -348,6 +352,9 @@ point reaches the beginning or end of the buffer, stop there."
   (interactive)
   (set-visited-file-name nil)
   (set-buffer-modified-p nil))
+
+(use-package pdf-tools
+  :ensure t)
 
 (use-package which-key
     :ensure t
@@ -499,20 +506,25 @@ point reaches the beginning or end of the buffer, stop there."
 
 (setq org-roam-capture-templates
       '(("d" "default" plain "%?"
-  	 :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
-  			    "#+title: ${title}\n")
-  	 :unnarrowed t
+	 :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
+			    "#+title: ${title}\n")
+	 :unnarrowed t
 	 :empty-lines 1
 	 )
 	("p" "physics" plain "%?"
-  	 :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
-  			    "#+startup: latexpreview\n#+latex_header: \\usepackage{physics}\n#+filetags: :physics:\n#+title: ${title}")
-  	 :unnarrowed t
+	 :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
+			    "#+startup: latexpreview\n#+latex_header: \\usepackage{physics}\n#+filetags: :physics:\n#+title: ${title}")
+	 :unnarrowed t
+	 )
+	("s" "statistics" plan "%?"
+	 :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
+			    "#+startup: latexpreview\n#+filetags: :statistics:\n#+title: ${title}")
+	 :unnarrowed t
 	 )
 	("m" "math" plain "%?"
-  	 :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
-  			    "#+startup: latexpreview\n#+filetags: :math:\n#+title: ${title}")
-  	 :unnarrowed t
+	 :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
+			    "#+startup: latexpreview\n#+filetags: :math:\n#+title: ${title}")
+	 :unnarrowed t
 	 )))
 
 (setq org-roam-node-display-template
@@ -567,6 +579,7 @@ point reaches the beginning or end of the buffer, stop there."
   :hook ((python-ts-mode . eglot-ensure)
          (c-ts-mode      . eglot-ensure)
          (c++-ts-mode    . eglot-ensure)
+	 (rust-ts-mode   . eglot-ensure)
          (js-ts-mode     . eglot-ensure)
          (java-ts-mode   . eglot-ensure))
   :config
@@ -600,6 +613,7 @@ point reaches the beginning or end of the buffer, stop there."
           (Javascript "https://github.com/tree-sitter/tree-sitter-javascript")
           (cpp "https://github.com/tree-sitter/tree-sitter-cpp")
           (c "https://github.com/tree-sitter/tree-sitter-c")
+	  (rust "https://github.com/tree-sitter/tree-sitter-rust")
 	  (glsl "https://github.com/tree-sitter-grammars/tree-sitter-glsl")
           (java "https://github.com/tree-sitter/tree-sitter-java")
           (css "https://github.com/tree-sitter/tree-sitter-css")
@@ -671,12 +685,6 @@ point reaches the beginning or end of the buffer, stop there."
 
 ;; (add-hook 'prog-mode-hook 'electric-pair-local-mode)
 
-(use-package smartparens
-  :ensure smartparens
-  :hook (prog-mode)
-  :config
-  (require 'smartparens-config))
-
 (defun my/newline-and-indent-handler (&rest _ignored)
   "Vertically split an expression inside of a pair."
   (newline-and-indent)
@@ -685,6 +693,8 @@ point reaches the beginning or end of the buffer, stop there."
 
 (require 'smartparens)
 (sp-local-pair 'prog-mode "{" nil :post-handlers '((my/newline-and-indent-handler "RET")))
+
+(add-hook 'prog-mode-hook #'prettify-symbols-mode)
 
 (defun my/org-babel-get-session ()
 "Return the name of the current Babel source block session."
@@ -728,6 +738,15 @@ point reaches the beginning or end of the buffer, stop there."
 
 (use-package glsl-mode
   :ensure t)
+
+(use-package sml-mode
+  :ensure t)
+
+(use-package rust-mode
+  :ensure t
+  :init
+  (setq rust-mode-treesitter-derive t))
+(setq rust-format-on-save t)
 
 (setq auth-sources "~/.authinfo.gpg")
 
@@ -782,6 +801,15 @@ point reaches the beginning or end of the buffer, stop there."
 		(kill-local-variable 'face-remapping-alist)
 		(olivetti-mode -1)
 		(setq-local mode-line-format writing--mode-line-format)))
+
+(require 'markdown-mode)
+(setq markdown-command "pandoc")
+
+(use-package claude-code-ide
+  :vc (:url "https://github.com/manzaltu/claude-code-ide.el" :rev :newest)
+  :bind ("C-c C-'" . claude-code-ide-menu) ; Set your favorite keybinding
+  :config
+  (claude-code-ide-emacs-tools-setup)) ; Optionally enable Emacs MCP tools
 
 (use-package exec-path-from-shell
     :config
@@ -911,6 +939,10 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package helpful
   :ensure t)
 
+(use-package ess
+  :ensure t)
+(load "ess-autoloads")
+
 ;; Enable Evil
 (use-package evil
   :init
@@ -926,6 +958,9 @@ point reaches the beginning or end of the buffer, stop there."
   :ensure t
   :config
   (evil-collection-init))
+
+(with-eval-after-load 'org
+  (evil-collection-define-key 'normal 'org-mode-map (kbd "M-j") 'avy-goto-char))
 
 (use-package evil-commentary
   :config

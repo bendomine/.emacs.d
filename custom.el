@@ -28,17 +28,20 @@
  '(org-safe-remote-resources '("\\`https://imgs\\.xkcd\\.com\\(?:/\\|\\'\\)"))
  '(org-support-shift-select t)
  '(package-selected-packages
-   '(auctex cdlatex consult-projectile corfu-prescient dashboard diff-hl
-	    dirvish doom-modeline doom-themes emacs-everywhere
-	    emmet-mode envrc evil-collection evil-commentary
-	    evil-escape exec-path-from-shell forge gdscript-mode
-	    general glsl-mode helpful indent-bars lua-mode marginalia
-	    nix-mode nix-ts-mode olivetti orderless org-modern
-	    org-roam-ui ox-ipynb pulsar qml-mode scroll-on-jump
-	    scroll-restore smartparens treemacs-projectile
-	    ultra-scroll valign vertico-posframe vertico-prescient
-	    yasnippet))
- '(package-vc-selected-packages '((ox-ipynb :url "https://github.com/jkitchin/ox-ipynb")))
+   '(auctex cdlatex claude-code-ide consult-projectile corfu-prescient
+	    dashboard diff-hl dirvish doom-modeline doom-themes
+	    emacs-everywhere emmet-mode envrc ess evil-collection
+	    evil-commentary evil-escape exec-path-from-shell forge
+	    gdscript-mode general glsl-mode helpful indent-bars
+	    jupyter lua-mode marginalia nix-mode nix-ts-mode olivetti
+	    orderless org-modern org-roam-ui ox-ipynb pdf-tools pulsar
+	    qml-mode rust-mode scroll-on-jump scroll-restore
+	    smartparens sml-mode treemacs-projectile ultra-scroll
+	    valign vertico-posframe vertico-prescient vterm yasnippet))
+ '(package-vc-selected-packages
+   '((claude-code-ide :url
+		      "https://github.com/manzaltu/claude-code-ide.el")
+     (ox-ipynb :url "https://github.com/jkitchin/ox-ipynb")))
  '(ring-bell-function 'ignore)
  '(safe-local-variable-directories
    '("/Users/bendomine/Documents/Coding/CSE 3601/lab-04-bendomine/"))
