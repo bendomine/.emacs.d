@@ -53,6 +53,44 @@
     (nerd-icons-font-family "Symbols Nerd Font Mono")
     )
 
+(defvar bendomine/nerd-icons-enabled (display-graphic-p)
+  "Non-nil to show nerd-icons glyphs in the modeline, dirvish, and dashboard.")
+
+(defun bendomine/apply-nerd-icons-setting ()
+  "Re-apply the current value of `bendomine/nerd-icons-enabled' to all consumers."
+  (setq doom-modeline-icon bendomine/nerd-icons-enabled)
+  (setq dirvish-attributes
+        (if bendomine/nerd-icons-enabled
+            '(vc-state subtree-state nerd-icons collapse git-msg file-time file-size)
+          '(vc-state subtree-state collapse git-msg file-time file-size)))
+  (setq dirvish-side-attributes
+        (if bendomine/nerd-icons-enabled
+            '(vc-state nerd-icons collapse file-size)
+          '(vc-state collapse file-size)))
+  (setq dashboard-set-heading-icons bendomine/nerd-icons-enabled)
+  (setq dashboard-set-file-icons bendomine/nerd-icons-enabled)
+  (when (fboundp 'bendomine/dashboard-navigator-buttons)
+    (setq dashboard-navigator-buttons (bendomine/dashboard-navigator-buttons)))
+  (force-mode-line-update t)
+  (when (and (fboundp 'dashboard-insert-startupify-lists) (get-buffer dashboard-buffer-name))
+    (dashboard-insert-startupify-lists t)))
+
+(defun bendomine/toggle-nerd-icons (&optional enable)
+    "Toggle nerd-icons glyphs in the modeline, dirvish, and dashboard.
+With a positive prefix arg, force on; with a non-positive prefix arg, force off."
+    (interactive "P")
+    (setq bendomine/nerd-icons-enabled
+          (if enable (> (prefix-numeric-value enable) 0) (not bendomine/nerd-icons-enabled)))
+    (bendomine/apply-nerd-icons-setting)
+    (message "Nerd icons %s" (if bendomine/nerd-icons-enabled "enabled" "disabled")))
+
+(if (daemonp)
+    (add-hook 'server-after-make-frame-hook
+              (lambda ()
+                (setq bendomine/nerd-icons-enabled (display-graphic-p))
+                (bendomine/apply-nerd-icons-setting)))
+  nil)
+
 (use-package doom-themes
   :ensure t
     :init
@@ -67,7 +105,7 @@
 
 (setq inhibit-compacting-font-caches t)
 
-(setq doom-modeline-icon t)
+(setq doom-modeline-icon bendomine/nerd-icons-enabled)
 
 (setq display-time-default-load-average nil)
 (setq doom-modeline-time-icon t)
@@ -315,9 +353,13 @@ point reaches the beginning or end of the buffer, stop there."
   (setq dirvish-mode-line-format
         '(:left (sort symlink) :right (omit yank index)))
   (setq dirvish-attributes           ; The order *MATTERS* for some attributes
-        '(vc-state subtree-state nerd-icons collapse git-msg file-time file-size)
+        (if bendomine/nerd-icons-enabled
+            '(vc-state subtree-state nerd-icons collapse git-msg file-time file-size)
+          '(vc-state subtree-state collapse git-msg file-time file-size))
         dirvish-side-attributes
-        '(vc-state nerd-icons collapse file-size))
+        (if bendomine/nerd-icons-enabled
+            '(vc-state nerd-icons collapse file-size)
+          '(vc-state collapse file-size)))
   ;; open large directory (over 20000 files) asynchronously with `fd' command
   (setq dirvish-large-directory-threshold 20000)
 
@@ -572,7 +614,9 @@ point reaches the beginning or end of the buffer, stop there."
 	:config (setq valign-fancy-bar t))
 
 (org-babel-do-load-languages
-	'org-babel-load-languages '((python . t)))
+ 'org-babel-load-languages '((python . t)
+			     (jupyter . t)
+			     (R . t)))
 
 (use-package eglot
   :ensure t
@@ -584,7 +628,8 @@ point reaches the beginning or end of the buffer, stop there."
          (java-ts-mode   . eglot-ensure))
   :config
   (add-to-list 'eglot-server-programs
-               '(html-mode . ("vscode-html-language-server" "--stdio"))))
+               '(html-mode . ("vscode-html-language-server" "--stdio"))
+	       '(sml-mode . ("~/Downloads/millet-ls-aarch64-apple-darwin"))))
 
 (setq eldoc-idle-delay 0.0)
 
@@ -748,7 +793,7 @@ point reaches the beginning or end of the buffer, stop there."
   (setq rust-mode-treesitter-derive t))
 (setq rust-format-on-save t)
 
-(setq auth-sources "~/.authinfo.gpg")
+(setq auth-sources '("~/.authinfo.gpg"))
 
 (add-hook 'prog-mode-hook 'hs-minor-mode)
 
@@ -894,8 +939,8 @@ point reaches the beginning or end of the buffer, stop there."
 	dashboard-vertically-center-content t
 	dashboard-icon-type 'nerd-icons
 	dashboard-startup-banner 'logo-braille
-	dashboard-set-heading-icons t
-	dashboard-set-file-icons t
+	dashboard-set-heading-icons bendomine/nerd-icons-enabled
+	dashboard-set-file-icons bendomine/nerd-icons-enabled
 	dashboard-navigation-cycle t
 	dashboard-banner-ascii (propertize "+---------------------------------------------------------+\n| 8888888888888b     d888       d8888 .d8888b.  .d8888b.  |\n| 888       8888b   d8888      d88888d88P  Y88bd88P  Y88b |\n| 888       88888b.d88888     d88P888888    888Y88b.      |\n| 8888888   888Y88888P888    d88P 888888        \"Y888b.   |\n| 888       888 Y888P 888   d88P  888888           \"Y88b. |\n| 888       888  Y8P  888  d88P   888888    888      \"888 |\n| 888       888   \"   888 d8888888888Y88b  d88PY88b  d88P |\n| 8888888888888       888d88P     888 \"Y8888P\"  \"Y8888P\"  |\n+---------------------------------------------------------+" 'face '(:foreground black))
 	dashboard-startup-banner 'ascii
@@ -913,22 +958,37 @@ point reaches the beginning or end of the buffer, stop there."
 	initial-buffer-choice (lambda () (get-buffer-create dashboard-buffer-name))))
 
 ;; Format: "(icon title help action face prefix suffix)"
-(setq dashboard-navigator-buttons
-      `(;; First line
-	((,(nerd-icons-faicon "nf-fa-gears" :height 1.1 :v-adjust 0.0)
-	 "Config"
-	 "Open config"
-	 (lambda (&rest _) (config))
-	 nil
-	 ""
-	 "")
-	 (,(nerd-icons-mdicon "nf-md-backup_restore" :height 1.1 :v-adjust 0.0)
-	  "Restore"
-	  "Restore session"
-	  (lambda (&rest _) (desktop-read))
-	  nil
-	  ""
-	  ""))))
+  (defun bendomine/dashboard-navigator-buttons ()
+    "Build `dashboard-navigator-buttons', using nerd-icons glyphs only
+when `bendomine/nerd-icons-enabled' is non-nil."
+    `(;; First line
+      ((,(if bendomine/nerd-icons-enabled
+             (nerd-icons-faicon "nf-fa-gears" :height 1.1 :v-adjust 0.0)
+           "")
+        "Config"
+        "Open config"
+        (lambda (&rest _) (config))
+        nil
+        ""
+        "")
+       (,(if bendomine/nerd-icons-enabled
+             (nerd-icons-mdicon "nf-md-backup_restore" :height 1.1 :v-adjust 0.0)
+           "")
+        "Restore"
+        "Restore session"
+        (lambda (&rest _) (desktop-read))
+        nil
+        ""
+        ""))))
+  (setq dashboard-navigator-buttons (bendomine/dashboard-navigator-buttons))
+
+(defun bendomine/dashboard-resize (frame)
+  "Redraw the dashboard so it stays centered when FRAME is resized."
+  (when (string= (buffer-name (window-buffer (frame-selected-window frame)))
+                 dashboard-buffer-name)
+    (dashboard-open)))
+
+(add-hook 'window-size-change-functions #'bendomine/dashboard-resize)
 
 (global-set-key (kbd "C-<wheel-up>") nil)
 (global-set-key (kbd "C-<wheel-down>") nil)
@@ -1011,7 +1071,7 @@ point reaches the beginning or end of the buffer, stop there."
    "bb"  'consult-buffer
    "bi"  'ibuffer-other-window
    "bk"  'kill-buffer
-   "bd"  'kill-current-buffer
+   "bd"  'evil-delete-buffer
    "br"  'revert-buffer-quick
    "bR"  'rename-buffer
 

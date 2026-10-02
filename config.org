@@ -120,6 +120,53 @@ I’m using nerd-icons for doom-modeline and other icon-requiring packages.
 
 Note: if this doesn’t work on a new computer, run nerd-icons-install-fonts.
 
+I want nerd-icons glyphs on by default only where they’ll actually render — GUI frames, where ~nerd-icons-font-family~ is honored directly. There’s no reliable way for Emacs to query a terminal emulator’s font, so ~(display-graphic-p)~ is the best available proxy: true on GUI frames, false on text terminals (where the terminal’s own font usually isn’t a Nerd Font). This is also the convention doom-modeline itself uses.
+#+begin_src emacs-lisp
+  (defvar bendomine/nerd-icons-enabled (display-graphic-p)
+    "Non-nil to show nerd-icons glyphs in the modeline, dirvish, and dashboard.")
+
+  (defun bendomine/apply-nerd-icons-setting ()
+    "Re-apply the current value of `bendomine/nerd-icons-enabled' to all consumers."
+    (setq doom-modeline-icon bendomine/nerd-icons-enabled)
+    (setq dirvish-attributes
+          (if bendomine/nerd-icons-enabled
+              '(vc-state subtree-state nerd-icons collapse git-msg file-time file-size)
+            '(vc-state subtree-state collapse git-msg file-time file-size)))
+    (setq dirvish-side-attributes
+          (if bendomine/nerd-icons-enabled
+              '(vc-state nerd-icons collapse file-size)
+            '(vc-state collapse file-size)))
+    (setq dashboard-set-heading-icons bendomine/nerd-icons-enabled)
+    (setq dashboard-set-file-icons bendomine/nerd-icons-enabled)
+    (when (fboundp 'bendomine/dashboard-navigator-buttons)
+      (setq dashboard-navigator-buttons (bendomine/dashboard-navigator-buttons)))
+    (force-mode-line-update t)
+    (when (and (fboundp 'dashboard-insert-startupify-lists) (get-buffer dashboard-buffer-name))
+      (dashboard-insert-startupify-lists t)))
+#+end_src
+
+If this proxy gets it wrong — a terminal that *is* Nerd-Font-configured, or a GUI frame where icons are unwanted — toggle it manually:
+#+begin_src emacs-lisp
+  (defun bendomine/toggle-nerd-icons (&optional enable)
+    "Toggle nerd-icons glyphs in the modeline, dirvish, and dashboard.
+With a positive prefix arg, force on; with a non-positive prefix arg, force off."
+    (interactive "P")
+    (setq bendomine/nerd-icons-enabled
+          (if enable (> (prefix-numeric-value enable) 0) (not bendomine/nerd-icons-enabled)))
+    (bendomine/apply-nerd-icons-setting)
+    (message "Nerd icons %s" (if bendomine/nerd-icons-enabled "enabled" "disabled")))
+#+end_src
+
+Under ~emacs --daemon~, no frame exists yet when the variable above is first evaluated, so re-detect and re-apply whenever a client frame attaches:
+#+begin_src emacs-lisp
+  (if (daemonp)
+      (add-hook 'server-after-make-frame-hook
+                (lambda ()
+                  (setq bendomine/nerd-icons-enabled (display-graphic-p))
+                  (bendomine/apply-nerd-icons-setting)))
+    nil)
+#+end_src
+
 ** Themes
 I’ll use doom-themes because of its broad selection. Screenshots of some of these themes can be found [[https://github.com/doomemacs/themes/tree/screenshots][here]].
 
@@ -161,9 +208,9 @@ I’ve had some issues with lag in the past, and I heard that this was supposed 
   (setq inhibit-compacting-font-caches t)
 #+end_src
 
-Let’s take advantage of the icons we’ve added and force doom-modeline to use them. This should be on by default but it can’t hurt.
+Let’s take advantage of the icons we’ve added and force doom-modeline to use them, but only on graphical frames where they’ll actually render.
 #+begin_src emacs-lisp
-  (setq doom-modeline-icon t)
+  (setq doom-modeline-icon bendomine/nerd-icons-enabled)
 #+end_src
 
 I also want to see the time, but not the system load average:
@@ -591,9 +638,13 @@ Just for fun, I’m going to try Dirvish as a better file browser. I’ll start 
     (setq dirvish-mode-line-format
           '(:left (sort symlink) :right (omit yank index)))
     (setq dirvish-attributes           ; The order *MATTERS* for some attributes
-          '(vc-state subtree-state nerd-icons collapse git-msg file-time file-size)
+          (if bendomine/nerd-icons-enabled
+              '(vc-state subtree-state nerd-icons collapse git-msg file-time file-size)
+            '(vc-state subtree-state collapse git-msg file-time file-size))
           dirvish-side-attributes
-          '(vc-state nerd-icons collapse file-size))
+          (if bendomine/nerd-icons-enabled
+              '(vc-state nerd-icons collapse file-size)
+            '(vc-state collapse file-size)))
     ;; open large directory (over 20000 files) asynchronously with `fd' command
     (setq dirvish-large-directory-threshold 20000)
 
@@ -1013,7 +1064,8 @@ I want to use the built-in eglot for LSP stuff.
            (java-ts-mode   . eglot-ensure))
     :config
     (add-to-list 'eglot-server-programs
-                 '(html-mode . ("vscode-html-language-server" "--stdio"))))
+                 '(html-mode . ("vscode-html-language-server" "--stdio"))
+  	       '(sml-mode . ("~/Downloads/millet-ls-aarch64-apple-darwin"))))
 #+end_src
 
 I also want to disable the delay used by eldoc before I get documentation displayed. This could get very annoying in the future, but it seems ok for now.
@@ -1328,7 +1380,7 @@ I’ll use rust-mode for rust.
 ** Authentication
 I want to use only one file for keeping secrets and other authentication tokens, authinfo.gpg.
 #+begin_src emacs-lisp
-  (setq auth-sources "~/.authinfo.gpg")
+  (setq auth-sources '("~/.authinfo.gpg"))
 #+end_src
 
 ** Code Folding
@@ -1532,8 +1584,8 @@ I’m gonna try the emacs-dashboard package to see if it’s better than what I 
   	dashboard-vertically-center-content t
   	dashboard-icon-type 'nerd-icons
   	dashboard-startup-banner 'logo-braille
-  	dashboard-set-heading-icons t
-  	dashboard-set-file-icons t
+  	dashboard-set-heading-icons bendomine/nerd-icons-enabled
+  	dashboard-set-file-icons bendomine/nerd-icons-enabled
   	dashboard-navigation-cycle t
   	dashboard-banner-ascii (propertize "+---------------------------------------------------------+\n| 8888888888888b     d888       d8888 .d8888b.  .d8888b.  |\n| 888       8888b   d8888      d88888d88P  Y88bd88P  Y88b |\n| 888       88888b.d88888     d88P888888    888Y88b.      |\n| 8888888   888Y88888P888    d88P 888888        \"Y888b.   |\n| 888       888 Y888P 888   d88P  888888           \"Y88b. |\n| 888       888  Y8P  888  d88P   888888    888      \"888 |\n| 888       888   \"   888 d8888888888Y88b  d88PY88b  d88P |\n| 8888888888888       888d88P     888 \"Y8888P\"  \"Y8888P\"  |\n+---------------------------------------------------------+" 'face '(:foreground black))
   	dashboard-startup-banner 'ascii
@@ -1554,22 +1606,40 @@ I’m gonna try the emacs-dashboard package to see if it’s better than what I 
 Next, I’ll customize the navigator:
 #+begin_src emacs-lisp
   ;; Format: "(icon title help action face prefix suffix)"
-  (setq dashboard-navigator-buttons
-        `(;; First line
-  	((,(nerd-icons-faicon "nf-fa-gears" :height 1.1 :v-adjust 0.0)
-  	 "Config"
-  	 "Open config"
-  	 (lambda (&rest _) (config))
-  	 nil
-  	 ""
-  	 "")
-  	 (,(nerd-icons-mdicon "nf-md-backup_restore" :height 1.1 :v-adjust 0.0)
-  	  "Restore"
-  	  "Restore session"
-  	  (lambda (&rest _) (desktop-read))
-  	  nil
-  	  ""
-  	  ""))))
+  (defun bendomine/dashboard-navigator-buttons ()
+    "Build `dashboard-navigator-buttons', using nerd-icons glyphs only
+when `bendomine/nerd-icons-enabled' is non-nil."
+    `(;; First line
+      ((,(if bendomine/nerd-icons-enabled
+             (nerd-icons-faicon "nf-fa-gears" :height 1.1 :v-adjust 0.0)
+           "")
+        "Config"
+        "Open config"
+        (lambda (&rest _) (config))
+        nil
+        ""
+        "")
+       (,(if bendomine/nerd-icons-enabled
+             (nerd-icons-mdicon "nf-md-backup_restore" :height 1.1 :v-adjust 0.0)
+           "")
+        "Restore"
+        "Restore session"
+        (lambda (&rest _) (desktop-read))
+        nil
+        ""
+        ""))))
+  (setq dashboard-navigator-buttons (bendomine/dashboard-navigator-buttons))
+#+end_src
+
+I also want the dashboard to resize itself whenever the frame does, so it stays centered instead of drifting off to a corner:
+#+begin_src emacs-lisp
+  (defun bendomine/dashboard-resize (frame)
+    "Redraw the dashboard so it stays centered when FRAME is resized."
+    (when (string= (buffer-name (window-buffer (frame-selected-window frame)))
+                   dashboard-buffer-name)
+      (dashboard-open)))
+
+  (add-hook 'window-size-change-functions #'bendomine/dashboard-resize)
 #+end_src
 
 ** Preventing Messages on C-scroll
@@ -1717,7 +1787,7 @@ I want to use the spacebar as a leader, doom-style. I therefore have a big list 
      "bb"  'consult-buffer
      "bi"  'ibuffer-other-window
      "bk"  'kill-buffer
-     "bd"  'kill-current-buffer
+     "bd"  'evil-delete-buffer
      "br"  'revert-buffer-quick
      "bR"  'rename-buffer
 
