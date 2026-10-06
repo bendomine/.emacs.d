@@ -33,6 +33,18 @@ First GUI customizations. We want fullscreen, no tool bar, and a dark frame:
   (set-frame-parameter nil 'ns-appearance 'dark)
 #+end_src
 
+** Mac Rebinding
+I primarily use Mac, so I want most keybindings to use the command key. So, I’ll switch the command and control keys.
+#+begin_src emacs-lisp
+  (setq mac-command-modifier 'control)
+  (setq mac-control-modifier 'super)
+#+end_src
+
+This means that I need to resolve the keyboard conflicts that arise from mac taking over certain commands, such as command + space.
+#+begin_src emacs-lisp :tangle no
+  (global-set-key (kbd "C-o") 'set-mark-command)
+#+end_src
+
 ** Package Management
 We’ll be using use-package. Much of this code comes from [[https://www.shaneikennedy.xyz/blog/emacs-intro][this blog post]] by Shane Kennedy.
 First, a macro for appending to a list:
@@ -69,31 +81,6 @@ Finally, some settings for use-pacakge. We want to make ensure the default, whic
   (setq
       use-package-always-ensure t
       use-package-verbose t)
-#+end_src
-* Keybindings
-** Mac Rebinding
-I primarily use Mac, so I want most keybindings to use the command key. So, I’ll switch the command and control keys.
-#+begin_src emacs-lisp
-  (setq mac-command-modifier 'control)
-  (setq mac-control-modifier 'super)
-#+end_src
-
-This means that I need to resolve the keyboard conflicts that arise from mac taking over certain commands, such as command + space.
-#+begin_src emacs-lisp :tangle no
-  (global-set-key (kbd "C-o") 'set-mark-command)
-#+end_src
-** Undo, Redo
-I want to use C-/ for commenting, so I’ll bind undo to C-z like normal. I don’t need to use suspend-frame much at all, so this should be acceptable.
-#+begin_src emacs-lisp :tangle no
-  (global-set-key (kbd "C-z") 'undo)
-  (global-set-key (kbd "C-S-z") 'undo-redo)
-#+end_src
-** S-Expressions
-The built-in keybindings for forward- and backward-sexp are prefixed with C-M-. I just generally dislike this combination.
-
-#+begin_src emacs-lisp
-  (global-set-key (kbd "M-F") 'forward-sexp)
-  (global-set-key (kbd "M-B") 'backward-sexp)
 #+end_src
 
 * UI
@@ -304,9 +291,7 @@ I originally used project.el, but I’ve decided to try projectile instead. I’
       :init
       (setq projectile-project-search-path '("~/Coding"))
       :config
-      (projectile-mode +1)
-      :bind (:map projectile-mode-map
-                ("C-c p" . projectile-command-map)))
+      (projectile-mode +1))
 #+end_src
 ** Jumping
 I use Avy to quickly jump to any visible text. The function I primarily use here is goto-char-timer, and I’ve dropped that timer all the way down to 0.15 seconds for speed.
@@ -316,8 +301,6 @@ I use Avy to quickly jump to any visible text. The function I primarily use here
       :ensure t
       :config
       (setq avy-timeout-seconds 0.15))
-  (bind-key* "M-j" 'avy-goto-char)
-
 #+end_src
 
 Just for visual clarity, I also want to briefly highlight the thing we jump to. In order to do this, let’s define a function for briefly pulsing the current thing:
@@ -346,7 +329,6 @@ I also want this functionality on each jump of an incremental search.
 I also want the ability to jump between windows, for which purpose I believe ace-window is the best choice.
 #+begin_src emacs-lisp
   (use-package ace-window)
-  (bind-key* "M-o" 'ace-window)
   (setq aw-dispatch-always t)
 #+end_src
 ** Commenting
@@ -480,27 +462,6 @@ Let’s start with swapping lines up and down:
               (move-to-column col)
               )))
 #+end_src
-
-We then bind these to keys:
-#+begin_src emacs-lisp
-    (global-set-key (kbd "M-<up>") 'swap-line-up)
-    (global-set-key (kbd "M-<down>") 'swap-line-down)
-#+end_src
-
-Duplicating up is very straightforward:
-#+begin_src emacs-lisp
-  (global-set-key (kbd "M-S-<up>") 'duplicate-line)  
-#+end_src
-
-Finally, duplicating down:
-#+begin_src emacs-lisp
-  (global-set-key (kbd "M-S-<down>") (lambda ()
-                                         (interactive)
-                                         (let ((col (current-column)))
-                                             (duplicate-line)
-                                             (forward-line 1)
-                                             (move-to-column col))))
-#+end_src
 ** Visual Line Mode
 I want visual line mode enabled in text modes:
 #+begin_src emacs-lisp
@@ -550,13 +511,6 @@ I don’t want the auto-save or backup files that emacs normally creates.
 #+begin_src emacs-lisp
   (setq make-backup-files nil)
   (setq auto-save-default nil)
-#+end_src
-
-** IBuffer
-I want to replace the default buffer list with the ibuffer list:
-#+begin_src emacs-lisp
-  (require 'ibuffer)
-  (global-set-key (kbd "C-x C-b") 'ibuffer-other-window)
 #+end_src
 
 ** Better Beginning of Line
@@ -629,7 +583,8 @@ Just for fun, I’m going to try Dirvish as a better file browser. I’ll start 
     :custom
     (dirvish-quick-access-entries ; It's a custom option, `setq' won't work
      '(("h" "~/"                          "Home")
-       ("d" "~/Downloads/"                "Downloads")
+       ("D" "~/Downloads/"                "Downloads")
+       ("d" "~/Documents/"                "Documents")
        ("m" "/mnt/"                       "Drives")
        ("t" "~/.local/share/Trash/files/" "TrashCan")))
     :config
@@ -653,26 +608,7 @@ Just for fun, I’m going to try Dirvish as a better file browser. I’ll start 
     ;; (setq dirvish-reuse-session nil)
     ;; Delete by moving to trash
     (setq delete-by-moving-to-trash t)
-    :bind ; Bind `dirvish-fd|dirvish-side|dirvish-dwim' as you see fit
-    (("C-c f" . dirvish)
-     :map dirvish-mode-map               ; Dirvish inherits `dired-mode-map'
-     ("h"   . dired-up-directory)        ; So you can adjust `dired' bindings here
-     ("?"   . dirvish-dispatch)          ; [?] a helpful cheatsheet
-     ("a"   . dirvish-setup-menu)        ; [a]ttributes settings:`t' toggles mtime, `f' toggles fullframe, etc.
-     ("f"   . dirvish-file-info-menu)    ; [f]ile info
-     ("o"   . dirvish-quick-access)      ; [o]pen `dirvish-quick-access-entries'
-     ("s"   . dirvish-quicksort)         ; [s]ort flie list
-     ("r"   . dirvish-history-jump)      ; [r]ecent visited
-     ("l"   . dired-find-file)  ; [l]s command flags
-     ("v"   . dirvish-vc-menu)           ; [v]ersion control commands
-     ("*"   . dirvish-mark-menu)
-     ("y"   . dirvish-yank-menu)
-     ("N"   . dirvish-narrow)
-     ("^"   . dirvish-history-last)
-     ("TAB" . dirvish-subtree-toggle)
-     ("M-f" . dirvish-history-go-forward)
-     ("M-b" . dirvish-history-go-backward)
-     ("M-e" . dirvish-emerge-menu)))
+    :commands (dirvish))
 #+end_src
 
 ** Unbind Buffer
@@ -706,10 +642,7 @@ For completion in the minibuffer, I’ll use vertico:
 #+begin_src emacs-lisp
   (use-package vertico
       :init
-      (vertico-mode)
-      :bind (:map vertico-map
-      ("C-j" . vertico-next)
-      ("C-k" . vertico-previous)))
+      (vertico-mode))
 #+end_src
 
 I also want to hide all commands that aren’t available in the current mode. This snippet comes from the Shane Kennedy blog post I linked previously.
@@ -726,7 +659,7 @@ Finally, I’ll use marginalia. This package makes it so that the completion opt
       (marginalia-mode))
 #+end_src
 ** In-Buffer Completion
-As far as I can tell, there are two primary options for in-buffer completion: company and corfu. Because I’m already using other Minad packages, it seems most logical to go for corfu here. This is a pretty minimal setup. I currently have a map that’s commented out, because I’m still deciding on the best keybindings here.
+As far as I can tell, there are two primary options for in-buffer completion: company and corfu. Because I’m already using other Minad packages, it seems most logical to go for corfu here. This is a pretty minimal setup.
 #+begin_src emacs-lisp
   (use-package corfu
     :custom
@@ -734,19 +667,7 @@ As far as I can tell, there are two primary options for in-buffer completion: co
     (corfu-cycle t) ;; Enable cycling for `corfu-next/previous'
     :hook ((prog-mode . corfu-mode)
   	 (shell-mode . corfu-mode)
-  	 (eshell-mode . corfu-mode))
-    :bind
-    (:map corfu-map
-          ;;     ("TAB" . corfu-next)
-          ;;     ("C-n" . corfu-next)
-          ;;     ([tab] . corfu-next)
-          ;;     ("C-p" . corfu-previous)
-          ;;     ("S-TAB" . corfu-previous)
-          ;;     ([backtab] . corfu-previous)
-  	("M-<backspace>" . backward-kill-word)
-  	("C-<backspace>" . backward-kill-word)
-  	;; ("ESC" . corfu-quit)
-  	))
+  	 (eshell-mode . corfu-mode)))
 #+end_src
 
 I also want to delay the completion a little bit, instead of it popping up immediately. I have this code set up to add a time delay of 0.2 seconds; however, the corfu documentation states that this can create lag, so I’ve commented it out for now.
@@ -781,15 +702,6 @@ I’ll use Consult for better searching. When I say "use" I don’t actually mea
   (use-package consult)
   (use-package consult-projectile
     :after (consult projectile))
-#+end_src
-
-I’ll replace some basic keybindings with their equivalent consult commands:
-
-#+begin_src emacs-lisp
-  (global-set-key (kbd "C-s") #'consult-line)
-  (global-set-key (kbd "C-x b") #'consult-buffer)
-  (global-set-key (kbd "C-M-l") #'consult-imenu)
-  (global-set-key (kbd "M-y") #'consult-yank-pop)
 #+end_src
 ** Sorting
 In order to better sort lists of options, I’ll use prescient.
@@ -872,15 +784,13 @@ Similarly, some templates for modifying text:
   ;; 6 items: key, mathcmd, textcmd, type (t if has argument, nil if style), rmdot (for if the dot on i and j should be removed idk), and t if italic correction is required.
 #+end_src
 
-Finally, though this is not directly related to org mode, I have a custom command to insert inline math, bound to C-(. It uses CDLatex to move the cursor back to the center of the parentheses.
+Finally, though this is not directly related to org mode, I have a custom command to insert inline math, bound to C-( in the Keybindings section. It uses CDLatex to move the cursor back to the center of the parentheses.
 #+begin_src emacs-lisp
   (defun begin-inline-math ()
       "Begins an inline math environment with \\(\\).  Requires cdlatex."
       (interactive)
       (insert "\\(?\\)")
       (cdlatex-position-cursor))
-  (add-hook 'org-cdlatex-mode-hook (lambda ()
-                                       (keymap-set org-cdlatex-mode-map "C-(" #'begin-inline-math)))  
 #+end_src
 
 Now we need to ensure that CDLatex is enabled in all org mode buffers.
@@ -917,14 +827,7 @@ Previous note-taking has been accomplished with text files, and more recently wi
   	:ensure t
   	:custom
   	(org-roam-directory "~/org-roam")
-  	:bind (("C-c n l" . org-roam-buffer-toggle)
-  			  ("C-c n f" . org-roam-node-find)
-  			  ("C-c n i" . org-roam-node-insert)
-  			  :map org-roam-dailies-map
-  			  ("Y" . org-roam-dailies-capture-yesterday)
-  			  ("T" . org-roam-dailies-capture-tomorrow))
-  	:bind-keymap
-  	("C-c n d" . org-roam-dailies-map)
+  	:commands (org-roam-buffer-toggle org-roam-node-find org-roam-node-insert)
   	:config
   	(require 'org-roam-dailies)
   	(org-roam-setup))
@@ -1023,11 +926,6 @@ One great thing about org mode is that you can have a large document but hide th
   	)
 #+end_src
 
-I want this bound to C-c C-h in org mode.
-#+begin_src emacs-lisp
-  (define-key org-mode-map (kbd "C-c C-h") #'org-fold-all-reveal)
-#+end_src
-
 ** Tables
 I’m noticing that table alignment fails when using things like previewed latex. I’ll try to fix this with valign.
 #+begin_src emacs-lisp
@@ -1085,9 +983,7 @@ For c++, I want to use clangd. I’m going to assume this is already installed v
 For quick completions, I’ll use emmet-mode:
 #+begin_src emacs-lisp
   (use-package emmet-mode
-  	:hook (html-mode css-mode web-mode)
-  	:config
-  	(keymap-set emmet-mode-keymap "TAB" #'emmet-expand-line))
+  	:hook (html-mode css-mode web-mode))
 #+end_src
 
 I also want to make mhtml mode inherit the prog-mode stuff:
@@ -1149,11 +1045,10 @@ Emacs has a built-in minor mode to highlight the current line, which I want to b
 #+end_src
 
 ** Linting
-I’ll use the built-in flymake package for linting. This should require minimal configuration. I will bind some keys to jump between errors.
+I’ll use the built-in flymake package for linting. This should require minimal configuration. The error-jumping keys are in the Keybindings section.
 #+begin_src emacs-lisp
   (use-package flymake
-    :bind (("M-n" . flymake-goto-next-error)  ; Move to next error
-           ("M-p" . flymake-goto-prev-error)) ; Move to previous error
+    :commands (flymake-goto-next-error flymake-goto-prev-error)
     :hook (prog-mode . flymake-mode))
 #+end_src
 
@@ -1284,11 +1179,6 @@ This second function is a modified version of org-babel-execute-buffer, which te
     (org-display-inline-images))
 #+end_src
 
-I’m going to want this to be a pretty easy command to execute quickly.
-#+begin_src emacs-lisp
-  (keymap-set org-babel-map "C-v" 'my/org-babel-execute-session)
-#+end_src
-
 ** Jupyter Notebooks
 If emacs is better than Jupyter notebooks, then emacs /with/ jupyter notebooks is better than everything! Or something. I’ll use the emacs-ipython-notebook (EIN) package to integrate the two.
 
@@ -1391,15 +1281,13 @@ I just like to have the ability to fold blocks of code at will. This is accompli
 
 * Projects
 ** Web Server
-I often want to start a server to preview a web project. I’ll use a custom function to do this, using projectile. I’ve bound this to C-c C-p w, which is the projectile prefix + w.
+I often want to start a server to preview a web project. I’ll use a custom function to do this, using projectile. It’s bound to SPC p w and C-c p w (projectile prefix + w) in the Keybindings section.
 #+begin_src emacs-lisp
   (require 'projectile)
   (defun start-web-server-in-project ()
       "Start a simple Python web server in root directory of current project."
       (interactive)
       (projectile-run-async-shell-command-in-root "python3 -m http.server"))
-
-  (define-key projectile-mode-map (kbd "C-c p w") #'start-web-server-in-project)
 #+end_src
 ** Treemacs
 Treemacs is a package which creates a buffer displaying the file structure of the current project.
@@ -1407,9 +1295,7 @@ Treemacs is a package which creates a buffer displaying the file structure of th
   (use-package treemacs
       :ensure t
       :defer t
-      :bind
-  	(:map global-map
-  		("C-c t" . treemacs)))
+      :commands (treemacs))
 #+end_src
 
 I want to use this with projectile, which requires the treemacs-projectile package:
@@ -1469,7 +1355,7 @@ This is the first AI integration I’m adding to my emacs config. I currently us
 #+begin_src emacs-lisp
   (use-package claude-code-ide
     :vc (:url "https://github.com/manzaltu/claude-code-ide.el" :rev :newest)
-    :bind ("C-c C-'" . claude-code-ide-menu) ; Set your favorite keybinding
+    :commands (claude-code-ide-menu)
     :config
     (claude-code-ide-emacs-tools-setup)) ; Optionally enable Emacs MCP tools
 #+end_src
@@ -1642,13 +1528,6 @@ I also want the dashboard to resize itself whenever the frame does, so it stays 
   (add-hook 'window-size-change-functions #'bendomine/dashboard-resize)
 #+end_src
 
-** Preventing Messages on C-scroll
-This is kind of stupid, but I sometimes have the C modifier key held down when scrolling, and I don’t want that to be special behavior:
-#+begin_src emacs-lisp
-  (global-set-key (kbd "C-<wheel-up>") nil)
-  (global-set-key (kbd "C-<wheel-down>") nil)
-#+end_src
-
 ** Emacs Everywhere
 I’m really not sure what I think about this, but I’ll try emacs-everywhere and see if I end up using it.
 #+begin_src emacs-lisp
@@ -1709,12 +1588,6 @@ And I guess I have to use evil-collection for it to work with my other packages:
     (evil-collection-init))
 #+end_src
 
-Evil-collection's Outline module binds normal-state ~M-j~ to =outline-move-subtree-down=, and since =org-mode-map= inherits from =outline-mode-map=, that binding leaks into Org buffers and shadows my Avy binding. Rebind it back directly on =org-mode-map= so Avy wins in Org.
-#+begin_src emacs-lisp
-  (with-eval-after-load 'org
-    (evil-collection-define-key 'normal 'org-mode-map (kbd "M-j") 'avy-goto-char))
-#+end_src
-
 ** Comments
 I’m going to use the evil package for commenting, to see if I prefer it to my normal style.
 #+begin_src emacs-lisp
@@ -1735,14 +1608,8 @@ Escape to escape makes sense, but I’d like to rebind it to something a little 
     (evil-escape-mode 1))
 #+end_src
 
-** Visual Line vs Logical Line
-I want to move by visual line and not by logical line.
-#+begin_src emacs-lisp
-  (define-key evil-normal-state-map (kbd "j") 'evil-next-visual-line)
-  (define-key evil-normal-state-map (kbd "k") 'evil-previous-visual-line)
-  (define-key evil-normal-state-map (kbd "gj") 'evil-next-line)
-  (define-key evil-normal-state-map (kbd "gk") 'evil-previous-line)
-#+end_src
+* Keybindings
+All keybindings live here, after every package has loaded. The evil leader (SPC in normal/visual, M-SPC in insert/emacs) is the primary mechanism for commands. Plain chords are kept only for editing commands, and mode-local bindings only where a key must live in one mode’s map. Everything goes through general.el, which defers bindings for keymaps that don’t exist yet.
 
 ** Leader Key
 I want to use the spacebar as a leader, doom-style. I therefore have a big list of commands here:
@@ -1823,6 +1690,20 @@ I want to use the spacebar as a leader, doom-style. I therefore have a big list 
      "pp"  'projectile-switch-project
      "pf"  'projectile-find-file
      "pa"  'projectile-add-known-project
+     "pw"  'start-web-server-in-project
+
+     ;; Open commands
+     "o"   '(:ignore t :which-key "open")
+     "od"  'dirvish
+     "ot"  'treemacs
+     "oc"  'claude-code-ide-menu
+
+     ;; Note commands
+     "n"   '(:ignore t :which-key "notes")
+     "nl"  'org-roam-buffer-toggle
+     "nf"  'org-roam-node-find
+     "ni"  'org-roam-node-insert
+     "nd"  '(:keymap org-roam-dailies-map :package org-roam-dailies :which-key "dailies")
 
      ;; Tab commands
      "t"   '(:ignore t :which-key "tabs")
@@ -1836,9 +1717,179 @@ I want to use the spacebar as a leader, doom-style. I therefore have a big list 
 
 #+end_src
 
-** Dirvish Fix
+** Overrides
+Some keys must win everywhere, even over evil-collection’s per-mode bindings (it binds M-j in outline/org, magit, dired, ibuffer and corfu, and M-o in ibuffer). ~bind-key*~ can’t guarantee this: evil registers its keymaps after it and takes precedence. Instead, ~bendomine/override-def~ binds into general’s override map twice: directly, for non-evil buffers like the minibuffer, and per evil state, where general turns the map into an evil intercept map that outranks every other evil keymap.
 #+begin_src emacs-lisp
+  (defmacro bendomine/override-def (&rest bindings)
+    "Bind BINDINGS (alternating keys and definitions) above every other keymap.
+  Covers non-evil buffers via `general-override-mode-map' and every evil state
+  via its intercept maps, so evil-collection bindings cannot shadow them."
+    `(progn
+       (general-define-key :keymaps 'override ,@bindings)
+       (general-define-key :keymaps 'override
+                           :states '(normal visual insert emacs motion)
+                           ,@bindings)))
+
+  (bendomine/override-def
+   "M-j" #'avy-goto-char
+   "M-o" #'ace-window)
+#+end_src
+
+** Global Chords
+*** S-Expressions
+The built-in keybindings for forward- and backward-sexp are prefixed with C-M-. I just generally dislike this combination.
+#+begin_src emacs-lisp
+  (general-define-key
+   "M-F" #'forward-sexp
+   "M-B" #'backward-sexp)
+#+end_src
+
+*** Undo, Redo
+I want to use C-/ for commenting, so I’ll bind undo to C-z like normal. I don’t need to use suspend-frame much at all, so this should be acceptable.
+#+begin_src emacs-lisp :tangle no
+  (global-set-key (kbd "C-z") 'undo)
+  (global-set-key (kbd "C-S-z") 'undo-redo)
+#+end_src
+
+*** Moving Lines
+VSCode-style line moving (the commands are defined in Core Editing → Moving Lines): M-up/M-down swap, M-S-up/M-S-down duplicate.
+#+begin_src emacs-lisp
+  (general-define-key
+   "M-<up>"     #'swap-line-up
+   "M-<down>"   #'swap-line-down
+   "M-S-<up>"   #'duplicate-line
+   "M-S-<down>" (lambda ()
+                  (interactive)
+                  (let ((col (current-column)))
+                    (duplicate-line)
+                    (forward-line 1)
+                    (move-to-column col))))
+#+end_src
+
+*** IBuffer
+I want to replace the default buffer list with the ibuffer list:
+#+begin_src emacs-lisp
+  (general-define-key "C-x C-b" #'ibuffer-other-window)
+#+end_src
+
+*** Consult
+I’ll replace some basic keybindings with their equivalent consult commands:
+#+begin_src emacs-lisp
+  (general-define-key
+   "C-s"   #'consult-line
+   "C-x b" #'consult-buffer
+   "C-M-l" #'consult-imenu
+   "M-y"   #'consult-yank-pop)
+#+end_src
+
+*** Linting
+Jump between flymake errors:
+#+begin_src emacs-lisp
+  (general-define-key
+   "M-n" #'flymake-goto-next-error
+   "M-p" #'flymake-goto-prev-error)
+#+end_src
+
+*** Preventing Messages on C-scroll
+This is kind of stupid, but I sometimes have the C modifier key held down when scrolling, and I don’t want that to be special behavior:
+#+begin_src emacs-lisp
+  (general-define-key
+   "C-<wheel-up>"   nil
+   "C-<wheel-down>" nil)
+#+end_src
+
+** Mode-Specific Bindings
+*** Projectile
+Projectile’s standard prefix, plus the web server command (also on SPC p w):
+#+begin_src emacs-lisp
+  (general-define-key :keymaps 'projectile-mode-map "C-c p" 'projectile-command-map)
+  (general-define-key :keymaps 'projectile-command-map "w" #'start-web-server-in-project)
+#+end_src
+
+*** Dirvish
+Dirvish’s single-key bindings, from its sample configuration. Dirvish inherits `dired-mode-map'. The map is made an overriding map for normal state so these keys beat evil’s defaults in Dirvish buffers.
+#+begin_src emacs-lisp
+  (general-define-key
+   :keymaps 'dirvish-mode-map
+   "h"   #'dired-up-directory        ; So you can adjust `dired' bindings here
+   "?"   #'dirvish-dispatch          ; [?] a helpful cheatsheet
+   "a"   #'dirvish-setup-menu        ; [a]ttributes settings:`t' toggles mtime, `f' toggles fullframe, etc.
+   "f"   #'dirvish-file-info-menu    ; [f]ile info
+   "o"   #'dirvish-quick-access      ; [o]pen `dirvish-quick-access-entries'
+   "s"   #'dirvish-quicksort         ; [s]ort flie list
+   "r"   #'dirvish-history-jump      ; [r]ecent visited
+   "l"   #'dired-find-file           ; [l]s command flags
+   "v"   #'dirvish-vc-menu           ; [v]ersion control commands
+   "*"   #'dirvish-mark-menu
+   "y"   #'dirvish-yank-menu
+   "N"   #'dirvish-narrow
+   "^"   #'dirvish-history-last
+   "TAB" #'dirvish-subtree-toggle
+   "M-f" #'dirvish-history-go-forward
+   "M-b" #'dirvish-history-go-backward
+   "M-e" #'dirvish-emerge-menu)
+
   ;; Fix for dirvish-mode-map not being loaded
   (require 'dirvish)
   (evil-make-overriding-map dirvish-mode-map 'normal)
+#+end_src
+
+*** Vertico
+#+begin_src emacs-lisp
+  (general-define-key
+   :keymaps 'vertico-map
+   "C-j" #'vertico-next
+   "C-k" #'vertico-previous)
+#+end_src
+
+*** Corfu
+I currently have part of this map commented out, because I’m still deciding on the best keybindings here.
+#+begin_src emacs-lisp
+  (general-define-key
+   :keymaps 'corfu-map
+   ;; "TAB" #'corfu-next
+   ;; "C-n" #'corfu-next
+   ;; [tab] #'corfu-next
+   ;; "C-p" #'corfu-previous
+   ;; "S-TAB" #'corfu-previous
+   ;; [backtab] #'corfu-previous
+   "M-<backspace>" #'backward-kill-word
+   "C-<backspace>" #'backward-kill-word
+   ;; "ESC" #'corfu-quit
+   )
+#+end_src
+
+*** Org
+I want ~org-fold-all-reveal~ bound to C-c C-h in org mode, my session-aware babel execute on C-c C-v C-v, and inline math on C-( with CDLatex.
+#+begin_src emacs-lisp
+  (general-define-key :keymaps 'org-mode-map "C-c C-h" #'org-fold-all-reveal)
+  (general-define-key :keymaps 'org-babel-map "C-v" #'my/org-babel-execute-session)
+  (general-define-key :keymaps 'org-cdlatex-mode-map "C-(" #'begin-inline-math)
+#+end_src
+
+*** Org Roam Dailies
+Extra capture keys in the dailies map (reached via SPC n d). These can’t rely on general’s deferral: ~org-roam-dailies~ requires ~org-roam~, whose ~:config~ requires ~org-roam-dailies~ again, so the file loads twice and the outer load’s ~define-prefix-command~ replaces the map the first load bound into. ~with-eval-after-load~ reruns on every ~provide~, so the keys land in the final map.
+#+begin_src emacs-lisp
+  (with-eval-after-load 'org-roam-dailies
+    (general-define-key
+     :keymaps 'org-roam-dailies-map
+     "Y" #'org-roam-dailies-capture-yesterday
+     "T" #'org-roam-dailies-capture-tomorrow))
+#+end_src
+
+*** Emmet
+#+begin_src emacs-lisp
+  (general-define-key :keymaps 'emmet-mode-keymap "TAB" #'emmet-expand-line)
+#+end_src
+
+** Evil States
+*** Visual Line vs Logical Line
+I want to move by visual line and not by logical line.
+#+begin_src emacs-lisp
+  (general-define-key
+   :states 'normal
+   "j"  #'evil-next-visual-line
+   "k"  #'evil-previous-visual-line
+   "gj" #'evil-next-line
+   "gk" #'evil-previous-line)
 #+end_src

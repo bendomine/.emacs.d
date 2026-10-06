@@ -13,6 +13,9 @@
 ;; (add-to-list 'default-frame-alist '(fullscreen . maximized))
 (set-frame-parameter nil 'ns-appearance 'dark)
 
+(setq mac-command-modifier 'control)
+(setq mac-control-modifier 'super)
+
 (defmacro append-to-list (target suffix)
     "Append SUFFIX to TARGET in place."
     `(setq ,target (append ,target ,suffix)))
@@ -33,12 +36,6 @@
 (setq
     use-package-always-ensure t
     use-package-verbose t)
-
-(setq mac-command-modifier 'control)
-(setq mac-control-modifier 'super)
-
-(global-set-key (kbd "M-F") 'forward-sexp)
-(global-set-key (kbd "M-B") 'backward-sexp)
 
 (use-package ultra-scroll
   :ensure t
@@ -165,15 +162,12 @@ With a positive prefix arg, force on; with a non-positive prefix arg, force off.
     :init
     (setq projectile-project-search-path '("~/Coding"))
     :config
-    (projectile-mode +1)
-    :bind (:map projectile-mode-map
-              ("C-c p" . projectile-command-map)))
+    (projectile-mode +1))
 
 (use-package avy
     :ensure t
     :config
     (setq avy-timeout-seconds 0.15))
-(bind-key* "M-j" 'avy-goto-char)
 
 (defun pulse-symbol-at-point ()
     "Briefly pulse the symbol under the current point."
@@ -184,7 +178,6 @@ With a positive prefix arg, force on; with a non-positive prefix arg, force off.
         (pulse-momentary-highlight-region first last)))
 
 (use-package ace-window)
-(bind-key* "M-o" 'ace-window)
 (setq aw-dispatch-always t)
 
 (defun my/comment-uncomment ()
@@ -258,18 +251,6 @@ Enable if ENABLE is greater than 0."
             (move-to-column col)
             )))
 
-(global-set-key (kbd "M-<up>") 'swap-line-up)
-(global-set-key (kbd "M-<down>") 'swap-line-down)
-
-(global-set-key (kbd "M-S-<up>") 'duplicate-line)
-
-(global-set-key (kbd "M-S-<down>") (lambda ()
-                                       (interactive)
-                                       (let ((col (current-column)))
-                                           (duplicate-line)
-                                           (forward-line 1)
-                                           (move-to-column col))))
-
 (add-hook 'text-mode-hook 'visual-line-mode)
 
 (use-package yasnippet
@@ -291,9 +272,6 @@ Enable if ENABLE is greater than 0."
 
 (setq make-backup-files nil)
 (setq auto-save-default nil)
-
-(require 'ibuffer)
-(global-set-key (kbd "C-x C-b") 'ibuffer-other-window)
 
 (defun smarter-move-beginning-of-line (arg)
   "Move point back to indentation of beginning of line.
@@ -344,7 +322,8 @@ point reaches the beginning or end of the buffer, stop there."
   :custom
   (dirvish-quick-access-entries ; It's a custom option, `setq' won't work
    '(("h" "~/"                          "Home")
-     ("d" "~/Downloads/"                "Downloads")
+     ("D" "~/Downloads/"                "Downloads")
+     ("d" "~/Documents/"                "Documents")
      ("m" "/mnt/"                       "Drives")
      ("t" "~/.local/share/Trash/files/" "TrashCan")))
   :config
@@ -368,26 +347,7 @@ point reaches the beginning or end of the buffer, stop there."
   ;; (setq dirvish-reuse-session nil)
   ;; Delete by moving to trash
   (setq delete-by-moving-to-trash t)
-  :bind ; Bind `dirvish-fd|dirvish-side|dirvish-dwim' as you see fit
-  (("C-c f" . dirvish)
-   :map dirvish-mode-map               ; Dirvish inherits `dired-mode-map'
-   ("h"   . dired-up-directory)        ; So you can adjust `dired' bindings here
-   ("?"   . dirvish-dispatch)          ; [?] a helpful cheatsheet
-   ("a"   . dirvish-setup-menu)        ; [a]ttributes settings:`t' toggles mtime, `f' toggles fullframe, etc.
-   ("f"   . dirvish-file-info-menu)    ; [f]ile info
-   ("o"   . dirvish-quick-access)      ; [o]pen `dirvish-quick-access-entries'
-   ("s"   . dirvish-quicksort)         ; [s]ort flie list
-   ("r"   . dirvish-history-jump)      ; [r]ecent visited
-   ("l"   . dired-find-file)  ; [l]s command flags
-   ("v"   . dirvish-vc-menu)           ; [v]ersion control commands
-   ("*"   . dirvish-mark-menu)
-   ("y"   . dirvish-yank-menu)
-   ("N"   . dirvish-narrow)
-   ("^"   . dirvish-history-last)
-   ("TAB" . dirvish-subtree-toggle)
-   ("M-f" . dirvish-history-go-forward)
-   ("M-b" . dirvish-history-go-backward)
-   ("M-e" . dirvish-emerge-menu)))
+  :commands (dirvish))
 
 (defun unbind-buffer ()
   "Unbind the current buffer from whatever file it may be visiting."
@@ -405,10 +365,7 @@ point reaches the beginning or end of the buffer, stop there."
 
 (use-package vertico
     :init
-    (vertico-mode)
-    :bind (:map vertico-map
-    ("C-j" . vertico-next)
-    ("C-k" . vertico-previous)))
+    (vertico-mode))
 
 (use-package emacs
     :custom
@@ -424,19 +381,7 @@ point reaches the beginning or end of the buffer, stop there."
   (corfu-cycle t) ;; Enable cycling for `corfu-next/previous'
   :hook ((prog-mode . corfu-mode)
 	 (shell-mode . corfu-mode)
-	 (eshell-mode . corfu-mode))
-  :bind
-  (:map corfu-map
-        ;;     ("TAB" . corfu-next)
-        ;;     ("C-n" . corfu-next)
-        ;;     ([tab] . corfu-next)
-        ;;     ("C-p" . corfu-previous)
-        ;;     ("S-TAB" . corfu-previous)
-        ;;     ([backtab] . corfu-previous)
-	("M-<backspace>" . backward-kill-word)
-	("C-<backspace>" . backward-kill-word)
-	;; ("ESC" . corfu-quit)
-	))
+	 (eshell-mode . corfu-mode)))
 
 (setq corfu-auto-delay 0)
 (setq corfu-auto-prefix 2)
@@ -450,11 +395,6 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package consult)
 (use-package consult-projectile
   :after (consult projectile))
-
-(global-set-key (kbd "C-s") #'consult-line)
-(global-set-key (kbd "C-x b") #'consult-buffer)
-(global-set-key (kbd "C-M-l") #'consult-imenu)
-(global-set-key (kbd "M-y") #'consult-yank-pop)
 
 (use-package prescient
   :config
@@ -506,8 +446,6 @@ point reaches the beginning or end of the buffer, stop there."
     (interactive)
     (insert "\\(?\\)")
     (cdlatex-position-cursor))
-(add-hook 'org-cdlatex-mode-hook (lambda ()
-                                     (keymap-set org-cdlatex-mode-map "C-(" #'begin-inline-math)))
 
 (add-hook 'org-mode-hook #'turn-on-org-cdlatex)
 
@@ -527,14 +465,7 @@ point reaches the beginning or end of the buffer, stop there."
 	:ensure t
 	:custom
 	(org-roam-directory "~/org-roam")
-	:bind (("C-c n l" . org-roam-buffer-toggle)
-			  ("C-c n f" . org-roam-node-find)
-			  ("C-c n i" . org-roam-node-insert)
-			  :map org-roam-dailies-map
-			  ("Y" . org-roam-dailies-capture-yesterday)
-			  ("T" . org-roam-dailies-capture-tomorrow))
-	:bind-keymap
-	("C-c n d" . org-roam-dailies-map)
+	:commands (org-roam-buffer-toggle org-roam-node-find org-roam-node-insert)
 	:config
 	(require 'org-roam-dailies)
 	(org-roam-setup))
@@ -607,8 +538,6 @@ point reaches the beginning or end of the buffer, stop there."
 	(message "")
 	)
 
-(define-key org-mode-map (kbd "C-c C-h") #'org-fold-all-reveal)
-
 (use-package valign
 	:hook (org-mode . valign-mode)
 	:config (setq valign-fancy-bar t))
@@ -637,9 +566,7 @@ point reaches the beginning or end of the buffer, stop there."
 ;; 	(setq lsp-clients-clangd-executable "/opt/homebrew/bin/clangd"))
 
 (use-package emmet-mode
-	:hook (html-mode css-mode web-mode)
-	:config
-	(keymap-set emmet-mode-keymap "TAB" #'emmet-expand-line))
+	:hook (html-mode css-mode web-mode))
 
 ;; (add-hook 'mhtml-mode-hook (lambda ()
 ;; 			     (run-hooks 'prog-mode-hook)))
@@ -685,8 +612,7 @@ point reaches the beginning or end of the buffer, stop there."
 (add-hook 'prog-mode-hook #'hl-line-mode)
 
 (use-package flymake
-  :bind (("M-n" . flymake-goto-next-error)  ; Move to next error
-         ("M-p" . flymake-goto-prev-error)) ; Move to previous error
+  :commands (flymake-goto-next-error flymake-goto-prev-error)
   :hook (prog-mode . flymake-mode))
 
 (setq flymake-no-changes-timeout 0.0)
@@ -763,8 +689,6 @@ point reaches the beginning or end of the buffer, stop there."
               (org-babel-execute-src-block arg))))))
   (org-display-inline-images))
 
-(keymap-set org-babel-map "C-v" 'my/org-babel-execute-session)
-
 (use-package ox-ipynb
   :ensure t
   :vc (:url "https://github.com/jkitchin/ox-ipynb"
@@ -803,14 +727,10 @@ point reaches the beginning or end of the buffer, stop there."
     (interactive)
     (projectile-run-async-shell-command-in-root "python3 -m http.server"))
 
-(define-key projectile-mode-map (kbd "C-c p w") #'start-web-server-in-project)
-
 (use-package treemacs
     :ensure t
     :defer t
-    :bind
-	(:map global-map
-		("C-c t" . treemacs)))
+    :commands (treemacs))
 
 (use-package treemacs-projectile
 	:after (treemacs projectile)
@@ -852,7 +772,7 @@ point reaches the beginning or end of the buffer, stop there."
 
 (use-package claude-code-ide
   :vc (:url "https://github.com/manzaltu/claude-code-ide.el" :rev :newest)
-  :bind ("C-c C-'" . claude-code-ide-menu) ; Set your favorite keybinding
+  :commands (claude-code-ide-menu)
   :config
   (claude-code-ide-emacs-tools-setup)) ; Optionally enable Emacs MCP tools
 
@@ -990,9 +910,6 @@ when `bendomine/nerd-icons-enabled' is non-nil."
 
 (add-hook 'window-size-change-functions #'bendomine/dashboard-resize)
 
-(global-set-key (kbd "C-<wheel-up>") nil)
-(global-set-key (kbd "C-<wheel-down>") nil)
-
 (use-package emacs-everywhere
   :ensure t)
 
@@ -1019,17 +936,9 @@ when `bendomine/nerd-icons-enabled' is non-nil."
   :config
   (evil-collection-init))
 
-(with-eval-after-load 'org
-  (evil-collection-define-key 'normal 'org-mode-map (kbd "M-j") 'avy-goto-char))
-
 (use-package evil-commentary
   :config
   (evil-commentary-mode))
-
-(define-key evil-normal-state-map (kbd "j") 'evil-next-visual-line)
-(define-key evil-normal-state-map (kbd "k") 'evil-previous-visual-line)
-(define-key evil-normal-state-map (kbd "gj") 'evil-next-line)
-(define-key evil-normal-state-map (kbd "gk") 'evil-previous-line)
 
 (require 'ibuffer)
 (require 'helpful)
@@ -1107,6 +1016,20 @@ when `bendomine/nerd-icons-enabled' is non-nil."
    "pp"  'projectile-switch-project
    "pf"  'projectile-find-file
    "pa"  'projectile-add-known-project
+   "pw"  'start-web-server-in-project
+
+   ;; Open commands
+   "o"   '(:ignore t :which-key "open")
+   "od"  'dirvish
+   "ot"  'treemacs
+   "oc"  'claude-code-ide-menu
+
+   ;; Note commands
+   "n"   '(:ignore t :which-key "notes")
+   "nl"  'org-roam-buffer-toggle
+   "nf"  'org-roam-node-find
+   "ni"  'org-roam-node-insert
+   "nd"  '(:keymap org-roam-dailies-map :package org-roam-dailies :which-key "dailies")
 
    ;; Tab commands
    "t"   '(:ignore t :which-key "tabs")
@@ -1118,6 +1041,111 @@ when `bendomine/nerd-icons-enabled' is non-nil."
    "tm" 'tab-move
    "t SPC" 'tab-switch))
 
+(defmacro bendomine/override-def (&rest bindings)
+  "Bind BINDINGS (alternating keys and definitions) above every other keymap.
+Covers non-evil buffers via `general-override-mode-map' and every evil state
+via its intercept maps, so evil-collection bindings cannot shadow them."
+  `(progn
+     (general-define-key :keymaps 'override ,@bindings)
+     (general-define-key :keymaps 'override
+                         :states '(normal visual insert emacs motion)
+                         ,@bindings)))
+
+(bendomine/override-def
+ "M-j" #'avy-goto-char
+ "M-o" #'ace-window)
+
+(general-define-key
+ "M-F" #'forward-sexp
+ "M-B" #'backward-sexp)
+
+(general-define-key
+ "M-<up>"     #'swap-line-up
+ "M-<down>"   #'swap-line-down
+ "M-S-<up>"   #'duplicate-line
+ "M-S-<down>" (lambda ()
+                (interactive)
+                (let ((col (current-column)))
+                  (duplicate-line)
+                  (forward-line 1)
+                  (move-to-column col))))
+
+(general-define-key "C-x C-b" #'ibuffer-other-window)
+
+(general-define-key
+ "C-s"   #'consult-line
+ "C-x b" #'consult-buffer
+ "C-M-l" #'consult-imenu
+ "M-y"   #'consult-yank-pop)
+
+(general-define-key
+ "M-n" #'flymake-goto-next-error
+ "M-p" #'flymake-goto-prev-error)
+
+(general-define-key
+ "C-<wheel-up>"   nil
+ "C-<wheel-down>" nil)
+
+(general-define-key :keymaps 'projectile-mode-map "C-c p" 'projectile-command-map)
+(general-define-key :keymaps 'projectile-command-map "w" #'start-web-server-in-project)
+
+(general-define-key
+ :keymaps 'dirvish-mode-map
+ "h"   #'dired-up-directory        ; So you can adjust `dired' bindings here
+ "?"   #'dirvish-dispatch          ; [?] a helpful cheatsheet
+ "a"   #'dirvish-setup-menu        ; [a]ttributes settings:`t' toggles mtime, `f' toggles fullframe, etc.
+ "f"   #'dirvish-file-info-menu    ; [f]ile info
+ "o"   #'dirvish-quick-access      ; [o]pen `dirvish-quick-access-entries'
+ "s"   #'dirvish-quicksort         ; [s]ort flie list
+ "r"   #'dirvish-history-jump      ; [r]ecent visited
+ "l"   #'dired-find-file           ; [l]s command flags
+ "v"   #'dirvish-vc-menu           ; [v]ersion control commands
+ "*"   #'dirvish-mark-menu
+ "y"   #'dirvish-yank-menu
+ "N"   #'dirvish-narrow
+ "^"   #'dirvish-history-last
+ "TAB" #'dirvish-subtree-toggle
+ "M-f" #'dirvish-history-go-forward
+ "M-b" #'dirvish-history-go-backward
+ "M-e" #'dirvish-emerge-menu)
+
 ;; Fix for dirvish-mode-map not being loaded
 (require 'dirvish)
 (evil-make-overriding-map dirvish-mode-map 'normal)
+
+(general-define-key
+ :keymaps 'vertico-map
+ "C-j" #'vertico-next
+ "C-k" #'vertico-previous)
+
+(general-define-key
+ :keymaps 'corfu-map
+ ;; "TAB" #'corfu-next
+ ;; "C-n" #'corfu-next
+ ;; [tab] #'corfu-next
+ ;; "C-p" #'corfu-previous
+ ;; "S-TAB" #'corfu-previous
+ ;; [backtab] #'corfu-previous
+ "M-<backspace>" #'backward-kill-word
+ "C-<backspace>" #'backward-kill-word
+ ;; "ESC" #'corfu-quit
+ )
+
+(general-define-key :keymaps 'org-mode-map "C-c C-h" #'org-fold-all-reveal)
+(general-define-key :keymaps 'org-babel-map "C-v" #'my/org-babel-execute-session)
+(general-define-key :keymaps 'org-cdlatex-mode-map "C-(" #'begin-inline-math)
+
+(with-eval-after-load 'org-roam-dailies
+  (general-define-key
+   :keymaps 'org-roam-dailies-map
+   "Y" #'org-roam-dailies-capture-yesterday
+   "T" #'org-roam-dailies-capture-tomorrow))
+
+(general-define-key :keymaps 'emmet-mode-keymap "TAB" #'emmet-expand-line)
+
+(general-define-key
+ :states 'normal
+ "j"  #'evil-next-visual-line
+ "k"  #'evil-previous-visual-line
+ "gj" #'evil-next-line
+ "gk" #'evil-previous-line)
