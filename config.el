@@ -356,7 +356,9 @@ point reaches the beginning or end of the buffer, stop there."
   (set-buffer-modified-p nil))
 
 (use-package pdf-tools
-  :ensure t)
+  :ensure t
+  :config
+  (add-hook 'pdf-view-mode #'pdf-view-roll-minor-mode))
 
 (use-package which-key
     :ensure t

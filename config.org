@@ -626,8 +626,11 @@ Emacs’ built-in pdf reader is pretty annoying to use, and most importantly, la
 
 #+begin_src emacs-lisp
   (use-package pdf-tools
-    :ensure t)
+    :ensure t
+    :config
+    (add-hook 'pdf-view-mode #'pdf-view-roll-minor-mode))
 #+end_src
+
 * Completions and Search
 ** Keybinding Completion
 I’ll use the which-key package to help with completions for keybindings.
