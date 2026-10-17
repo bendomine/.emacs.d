@@ -942,7 +942,6 @@ In order to use org mode’s excellent Babel feature, I need to include the lang
 #+begin_src emacs-lisp
   (org-babel-do-load-languages
    'org-babel-load-languages '((python . t)
-  			     (jupyter . t)
   			     (R . t)))
 #+end_src
 
