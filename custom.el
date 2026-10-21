@@ -35,9 +35,10 @@
 	    gdscript-mode general glsl-mode helpful indent-bars
 	    jupyter lua-mode marginalia nix-mode nix-ts-mode olivetti
 	    orderless org-modern org-roam-ui ox-ipynb pdf-tools pulsar
-	    qml-mode rust-mode scroll-on-jump scroll-restore
-	    smartparens sml-mode treemacs-projectile ultra-scroll
-	    valign vertico-posframe vertico-prescient vterm yasnippet))
+	    qml-mode racket-mode rust-mode scroll-on-jump
+	    scroll-restore smartparens sml-mode treemacs-projectile
+	    ultra-scroll valign vertico-posframe vertico-prescient
+	    vterm yasnippet))
  '(package-vc-selected-packages
    '((claude-code-ide :url
 		      "https://github.com/manzaltu/claude-code-ide.el")
@@ -45,6 +46,10 @@
  '(ring-bell-function 'ignore)
  '(safe-local-variable-directories
    '("/Users/bendomine/Documents/Coding/CSE 3601/lab-04-bendomine/"))
+ '(safe-local-variable-values
+   '((org-latex-image-default-width . "0.5\\linewidth")
+     (org-latex-image-default-width . "0.4\\linewidth")
+     (org-latex-image-default-width . "0.6\\linewidth")))
  '(scroll-bar-mode nil)
  '(send-mail-function 'mailclient-send-it)
  '(tab-bar-new-tab-choice "*Splash Screen*")

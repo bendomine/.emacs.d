@@ -777,6 +777,9 @@ I also have a few custom templates for CDLatex.
            ("()" "Insert inline math" "\\(?\\)" cdlatex-position-cursor nil t nil)
   	 ("tt" "Insert \\text{}" "\\text{?}" cdlatex-position-cursor nil nil t)
            ("hb" "Insert \\hbar" "\\hbar" nil nil nil t)
+  	 ("on" "Insert \\operatorname{}" "\\operatorname{?}" cdlatex-position-cursor nil nil t)
+  	 ("dv" "Insert \\dv{}{}" "\\dv{?}{}" cdlatex-position-cursor nil nil t)
+  	 ("pdv" "Insert \\pdv{}{}" "\\pdv{?}{}" cdlatex-position-cursor nil nil t)
   	 ("bb" "Insert \\mathbb" "\\mathbb " nil nil nil t)))
 #+end_src
 
@@ -1269,6 +1272,13 @@ I’ll use rust-mode for rust.
     :init
     (setq rust-mode-treesitter-derive t))
   (setq rust-format-on-save t)
+#+end_src
+** Racket
+I’m going to include Racket, because Dr. Racket is an absolute pain.
+
+#+begin_src emacs-lisp
+  (use-package racket-mode
+    :ensure t)
 #+end_src
 ** Authentication
 I want to use only one file for keeping secrets and other authentication tokens, authinfo.gpg.

@@ -437,6 +437,7 @@ point reaches the beginning or end of the buffer, stop there."
          ("()" "Insert inline math" "\\(?\\)" cdlatex-position-cursor nil t nil)
 	 ("tt" "Insert \\text{}" "\\text{?}" cdlatex-position-cursor nil nil t)
          ("hb" "Insert \\hbar" "\\hbar" nil nil nil t)
+	 ("on" "Insert \\operatorname{}" "\\operatorname{?}" cdlatex-position-cursor nil nil t)
 	 ("bb" "Insert \\mathbb" "\\mathbb " nil nil nil t)))
 
 (setq cdlatex-math-modify-alist
@@ -718,6 +719,9 @@ point reaches the beginning or end of the buffer, stop there."
   :init
   (setq rust-mode-treesitter-derive t))
 (setq rust-format-on-save t)
+
+(use-package racket-mode
+  :ensure t)
 
 (setq auth-sources '("~/.authinfo.gpg"))
 
