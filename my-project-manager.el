@@ -1,3 +1,4 @@
+;;; my-project-manager.el --- CMake build widget  -*- lexical-binding: t; -*-
 (require 'widget)
 
 (eval-when-compile

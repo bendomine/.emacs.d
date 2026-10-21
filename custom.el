@@ -1,3 +1,4 @@
+;;; custom.el --- Customize settings  -*- lexical-binding: t; -*-
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -45,6 +46,7 @@
  '(ring-bell-function 'ignore)
  '(safe-local-variable-directories
    '("/Users/bendomine/Documents/Coding/CSE 3601/lab-04-bendomine/"))
+ '(safe-local-variable-values '((org-latex-image-default-width . "0.6\\linewidth")))
  '(scroll-bar-mode nil)
  '(send-mail-function 'mailclient-send-it)
  '(tab-bar-new-tab-choice "*Splash Screen*")
