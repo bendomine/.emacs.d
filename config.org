@@ -3,6 +3,12 @@
 #+property: header-args:emacs-lisp :tangle yes :results silent
 #+startup: overview
 
+* Lexical Binding
+Emacs warns when a loaded file has no ~lexical-binding~ cookie. This block has to stay first so the cookie lands on the first line of the tangled =config.el=.
+#+begin_src emacs-lisp
+  ;;; config.el --- Tangled from config.org  -*- lexical-binding: t; -*-
+#+end_src
+
 * Early Initialization
 ** Config File Shortcut
 Because of how frequently I visit this file, I want a function to quickly find it. I want this to be the very first thing I do, so that if something breaks this function still ends up loading whenever possible.
@@ -945,7 +951,6 @@ In order to use org mode’s excellent Babel feature, I need to include the lang
 #+begin_src emacs-lisp
   (org-babel-do-load-languages
    'org-babel-load-languages '((python . t)
-  			     (jupyter . t)
   			     (R . t)))
 #+end_src
 

@@ -1,3 +1,5 @@
+;;; config.el --- Tangled from config.org  -*- lexical-binding: t; -*-
+
 (defun config ()
     "Find the config file."
     (interactive)
@@ -547,7 +549,6 @@ point reaches the beginning or end of the buffer, stop there."
 
 (org-babel-do-load-languages
  'org-babel-load-languages '((python . t)
-			     (jupyter . t)
 			     (R . t)))
 
 (use-package eglot

@@ -1,3 +1,4 @@
+;;; my-delete.el --- Smart backspace  -*- lexical-binding: t; -*-
 (defun my/delete ()
   "Delete one character, or all whitespace if only indentation is present."
   (interactive)
