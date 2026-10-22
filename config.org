@@ -1579,6 +1579,38 @@ I’ll use ESS for statistics.
     :ensure t)
   (load "ess-autoloads")
 #+end_src
+
+** xkcd
+It’s of the utmost importance that I can call up the latest xkcd from within emacs. I’ve therefore written this elisp function to do just that:
+
+#+begin_src emacs-lisp
+  (defun xkcd ()
+    "Get the latest xkcd comic and insert at point."
+    (interactive)
+    (let* ((data (with-current-buffer (url-retrieve-synchronously "https://xkcd.com/info.0.json")
+  		 ;; Get response from xkcd info page
+  		 (goto-char (point-min))
+  		 (re-search-forward "\n\n")
+  		 (prog1
+  	    (buffer-substring (point) (point-max))
+  	(kill-buffer (current-buffer)))))
+
+  	 ;; Extract url of latest comic’s image
+  	 (url (alist-get 'img (json-parse-string data :object-type 'alist)))
+
+  	 ;; Request and extract image data, trying with _2x
+  	 (url-2x (s-replace ".png" "_2x.png" url))
+  	 (image-data (with-current-buffer (url-retrieve-synchronously url-2x)
+  		       (goto-char (point-min))
+  		       (re-search-forward "\n\n")
+  		       (prog1
+  			 (buffer-substring (point) (point-max))
+  		       (kill-buffer (current-buffer)))))
+
+  	 (image (create-image image-data 'png t)))
+      (insert-image image)))
+#+end_src
+
 * EVIL
 ** General Setup
 I’m gonna try evil.

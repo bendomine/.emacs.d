@@ -440,6 +440,8 @@ point reaches the beginning or end of the buffer, stop there."
 	 ("tt" "Insert \\text{}" "\\text{?}" cdlatex-position-cursor nil nil t)
          ("hb" "Insert \\hbar" "\\hbar" nil nil nil t)
 	 ("on" "Insert \\operatorname{}" "\\operatorname{?}" cdlatex-position-cursor nil nil t)
+	 ("dv" "Insert \\dv{}{}" "\\dv{?}{}" cdlatex-position-cursor nil nil t)
+	 ("pdv" "Insert \\pdv{}{}" "\\pdv{?}{}" cdlatex-position-cursor nil nil t)
 	 ("bb" "Insert \\mathbb" "\\mathbb " nil nil nil t)))
 
 (setq cdlatex-math-modify-alist
