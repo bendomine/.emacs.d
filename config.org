@@ -1611,6 +1611,8 @@ It’s of the utmost importance that I can call up the latest xkcd from within e
       (insert-image image)))
 #+end_src
 
+Notably, there’s really no error handling in here, and so if there’s a problem (like a bad response, or xkcd changing its api, or a comic getting uploaded without _2x) it’ll just break.
+
 * EVIL
 ** General Setup
 I’m gonna try evil.
