@@ -32,11 +32,9 @@ Packages I’m currently developing will be in different files; load them also:
   (load "~/.emacs.d/my-delete.el")
 #+end_src
 ** Basic GUI Tweaks
-First GUI customizations. We want fullscreen, no tool bar, and a dark frame:
+Tool bar and dark-frame appearance are now set in =early-init.el=, before the first frame exists, so there's no flash of an undecorated/light frame on startup.
 #+begin_src emacs-lisp
-  (tool-bar-mode -1)
   ;; (add-to-list 'default-frame-alist '(fullscreen . maximized))
-  (set-frame-parameter nil 'ns-appearance 'dark)
 #+end_src
 
 ** Mac Rebinding
@@ -305,6 +303,7 @@ I use Avy to quickly jump to any visible text. The function I primarily use here
 #+begin_src emacs-lisp
   (use-package avy
       :ensure t
+      :commands (avy-goto-char)
       :config
       (setq avy-timeout-seconds 0.15))
 #+end_src
@@ -334,7 +333,7 @@ I also want this functionality on each jump of an incremental search.
 
 I also want the ability to jump between windows, for which purpose I believe ace-window is the best choice.
 #+begin_src emacs-lisp
-  (use-package ace-window)
+  (use-package ace-window :commands (ace-window))
   (setq aw-dispatch-always t)
 #+end_src
 ** Commenting
@@ -439,7 +438,7 @@ Finally, the c++ mode keymap eats C-d. It would be better practice to bind it to
 Emacs traditionally does not allow point to exist "offscreen", which is kinda annoying, so I’ll remedy that with the scroll-restore package.
 
 #+begin_src emacs-lisp
-  (use-package scroll-restore)
+  (use-package scroll-restore :defer t)
 #+end_src
 
 ** Moving Lines
@@ -507,10 +506,7 @@ When a buffer is changed on disk, I want those changes to be immediately reflect
 #+end_src
 
 ** Garbage Collection
-I’m not entirely sure what this does, but I’ve heard it highly recommended:
-#+begin_src emacs-lisp
-  (setq gc-cons-threshold 1000000)
-#+end_src
+This now lives in =early-init.el=, raised high during startup and lowered again once Emacs is idle, instead of being set once here.
 
 ** Backup Files
 I don’t want the auto-save or backup files that emacs normally creates.
@@ -569,7 +565,8 @@ I’ve had consistent issues with the emacs terminal emulators, so I’ll try th
 
 #+begin_src emacs-lisp
   (use-package vterm
-    :ensure t)
+    :ensure t
+    :commands (vterm vterm-other-window))
 #+end_src
 
 ** File Browser
@@ -633,6 +630,7 @@ Emacs’ built-in pdf reader is pretty annoying to use, and most importantly, la
 #+begin_src emacs-lisp
   (use-package pdf-tools
     :ensure t
+    :mode ("\\.pdf\\'" . pdf-view-mode)
     :config
     (add-hook 'pdf-view-mode #'pdf-view-roll-minor-mode))
 #+end_src
@@ -1072,7 +1070,7 @@ I want flymake to have no delay. This may cause significant lag, so I may not ke
 ** Version Control
 For help with version control, I’ll use magit. I currently don’t have this customized at all.
 #+begin_src emacs-lisp
-  (use-package magit)
+  (use-package magit :commands (magit-status))
 #+end_src
 
 I also want to use forge, which is the magit integration with git forges like github and gitlab.
@@ -1227,6 +1225,10 @@ And now ox-ipynb:
 #+begin_src emacs-lisp
   (use-package ox-ipynb
     :ensure t
+    :commands (ox-ipynb-export-to-ipynb-file
+               ox-ipynb-export-to-ipynb-file-and-open
+               ox-ipynb-export-to-buffer
+               ox-ipynb-export-org-file-to-ipynb-file)
     :vc (:url "https://github.com/jkitchin/ox-ipynb"
   	    :rev :newest))
 #+end_src
@@ -1234,46 +1236,51 @@ And now ox-ipynb:
 ** Godot
 I’ll add Godot’s emacs package.
 #+begin_src emacs-lisp
-  (use-package gdscript-mode)
+  (use-package gdscript-mode :mode "\\.gd\\'")
 #+end_src
 
 ** Nix
 I want to use nix:
 #+begin_src emacs-lisp
-  (use-package nix-mode :ensure t)
-  (use-package nix-ts-mode :ensure t)
+  (use-package nix-mode :ensure t :mode "\\.nix\\'")
+  (use-package nix-ts-mode :ensure t :mode "\\.nix\\'")
 #+end_src
 
 ** Lua
 Similarly, I want to use Lua:
 #+begin_src emacs-lisp
     (use-package lua-mode
-      :ensure t)
+      :ensure t
+      :mode "\\.lua\\'")
 #+end_src
 
 ** QML
 I’ll use qml-mode:
 #+begin_src emacs-lisp
   (use-package qml-mode
-    :ensure t)
+    :ensure t
+    :mode "\\.qml\\'")
 #+end_src
 ** GLSL
 I’ll include a major mode for GLSL:
 #+begin_src emacs-lisp
   (use-package glsl-mode
-    :ensure t)
+    :ensure t
+    :mode "\\.glsl\\'")
 #+end_src
 ** SML
 SML, for CSE 4205:
 #+begin_src emacs-lisp
   (use-package sml-mode
-    :ensure t)
+    :ensure t
+    :mode "\\.sml\\'")
 #+end_src
 ** Rust
 I’ll use rust-mode for rust.
 #+begin_src emacs-lisp
   (use-package rust-mode
     :ensure t
+    :mode "\\.rs\\'"
     :init
     (setq rust-mode-treesitter-derive t))
   (setq rust-format-on-save t)
@@ -1283,7 +1290,8 @@ I’m going to include Racket, because Dr. Racket is an absolute pain.
 
 #+begin_src emacs-lisp
   (use-package racket-mode
-    :ensure t)
+    :ensure t
+    :mode "\\.rkt\\'")
 #+end_src
 ** Authentication
 I want to use only one file for keeping secrets and other authentication tokens, authinfo.gpg.
@@ -1362,8 +1370,9 @@ I want to have a minor mode for writing text in emacs. This minor mode should ov
 I’ll use pandoc as my markdown command.
 
 #+begin_src emacs-lisp
-  (require 'markdown-mode)
-  (setq markdown-command "pandoc")
+  (use-package markdown-mode
+    :mode ("\\.md\\'" . markdown-mode)
+    :init (setq markdown-command "pandoc"))
 #+end_src
 
 * Integrations
@@ -1383,6 +1392,11 @@ This is the first AI integration I’m adding to my emacs config. I currently us
 This one has come highly recommended; env variables should be grabbed from the shell.
 #+begin_src emacs-lisp
   (use-package exec-path-from-shell
+      :init
+      ;; Login, non-interactive: skips interactive-only setup (prompt theme,
+      ;; completion, etc.) that isn't needed just to read PATH/MANPATH.
+      ;; PATH-affecting exports therefore live in ~/.zprofile, not ~/.zshrc.
+      (setq exec-path-from-shell-arguments '("-l"))
       :config
       (exec-path-from-shell-initialize))
 #+end_src
@@ -1550,7 +1564,8 @@ I also want the dashboard to resize itself whenever the frame does, so it stays 
 I’m really not sure what I think about this, but I’ll try emacs-everywhere and see if I end up using it.
 #+begin_src emacs-lisp
   (use-package emacs-everywhere
-    :ensure t)
+    :ensure t
+    :defer t)
 #+end_src
 
 I also need to set a specific server directory:
@@ -1562,7 +1577,8 @@ I also need to set a specific server directory:
 I’ll use the helpful package to improve help windows.
 #+begin_src emacs-lisp
   (use-package helpful
-    :ensure t)
+    :ensure t
+    :commands (helpful-callable helpful-variable helpful-key))
 #+end_src
 
 ** Fringe Tildes
@@ -1576,8 +1592,8 @@ This is dumb. But I’ll try adding the vi-tilde-fringe package, just to see if 
 I’ll use ESS for statistics.
 #+begin_src emacs-lisp
   (use-package ess
-    :ensure t)
-  (load "ess-autoloads")
+    :ensure t
+    :mode (("\\.R\\'" . R-mode) ("\\.r\\'" . R-mode)))
 #+end_src
 
 ** xkcd
@@ -1666,11 +1682,6 @@ All keybindings live here, after every package has loaded. The evil leader (SPC 
 ** Leader Key
 I want to use the spacebar as a leader, doom-style. I therefore have a big list of commands here:
 #+begin_src emacs-lisp
-  (require 'ibuffer)
-  (require 'helpful)
-  (require 'magit)
-  (require 'projectile)
-  (require 'consult)
   (use-package general
     :ensure t
     :config

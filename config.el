@@ -11,9 +11,7 @@
 (load "~/.emacs.d/my-project-manager.el")
 (load "~/.emacs.d/my-delete.el")
 
-(tool-bar-mode -1)
 ;; (add-to-list 'default-frame-alist '(fullscreen . maximized))
-(set-frame-parameter nil 'ns-appearance 'dark)
 
 (setq mac-command-modifier 'control)
 (setq mac-control-modifier 'super)
@@ -168,6 +166,7 @@ With a positive prefix arg, force on; with a non-positive prefix arg, force off.
 
 (use-package avy
     :ensure t
+    :commands (avy-goto-char)
     :config
     (setq avy-timeout-seconds 0.15))
 
@@ -179,7 +178,7 @@ With a positive prefix arg, force on; with a non-positive prefix arg, force off.
               (last (cdr bounds)))
         (pulse-momentary-highlight-region first last)))
 
-(use-package ace-window)
+(use-package ace-window :commands (ace-window))
 (setq aw-dispatch-always t)
 
 (defun my/comment-uncomment ()
@@ -230,7 +229,7 @@ Enable if ENABLE is greater than 0."
     (pulsar-high-quality 1)
     (pulsar-high-quality -1))
 
-(use-package scroll-restore)
+(use-package scroll-restore :defer t)
 
 (defun swap-line-up ()
     "Swap the current line with the one above it, retaining cursor position."
@@ -270,8 +269,6 @@ Enable if ENABLE is greater than 0."
 
 (global-auto-revert-mode 1)
 
-(setq gc-cons-threshold 1000000)
-
 (setq make-backup-files nil)
 (setq auto-save-default nil)
 
@@ -308,7 +305,8 @@ point reaches the beginning or end of the buffer, stop there."
 (setq xterm-set-window-title t)
 
 (use-package vterm
-  :ensure t)
+  :ensure t
+  :commands (vterm vterm-other-window))
 
 (setq insert-directory-program "gls" dired-use-ls-dired t)
 (setq dired-listing-switches
@@ -359,6 +357,7 @@ point reaches the beginning or end of the buffer, stop there."
 
 (use-package pdf-tools
   :ensure t
+  :mode ("\\.pdf\\'" . pdf-view-mode)
   :config
   (add-hook 'pdf-view-mode #'pdf-view-roll-minor-mode))
 
@@ -623,7 +622,7 @@ point reaches the beginning or end of the buffer, stop there."
 
 (setq flymake-no-changes-timeout 0.0)
 
-(use-package magit)
+(use-package magit :commands (magit-status))
 
 (use-package forge
   :after magit)
@@ -697,34 +696,44 @@ point reaches the beginning or end of the buffer, stop there."
 
 (use-package ox-ipynb
   :ensure t
+  :commands (ox-ipynb-export-to-ipynb-file
+             ox-ipynb-export-to-ipynb-file-and-open
+             ox-ipynb-export-to-buffer
+             ox-ipynb-export-org-file-to-ipynb-file)
   :vc (:url "https://github.com/jkitchin/ox-ipynb"
 	    :rev :newest))
 
-(use-package gdscript-mode)
+(use-package gdscript-mode :mode "\\.gd\\'")
 
-(use-package nix-mode :ensure t)
-(use-package nix-ts-mode :ensure t)
+(use-package nix-mode :ensure t :mode "\\.nix\\'")
+(use-package nix-ts-mode :ensure t :mode "\\.nix\\'")
 
 (use-package lua-mode
-  :ensure t)
+  :ensure t
+  :mode "\\.lua\\'")
 
 (use-package qml-mode
-  :ensure t)
+  :ensure t
+  :mode "\\.qml\\'")
 
 (use-package glsl-mode
-  :ensure t)
+  :ensure t
+  :mode "\\.glsl\\'")
 
 (use-package sml-mode
-  :ensure t)
+  :ensure t
+  :mode "\\.sml\\'")
 
 (use-package rust-mode
   :ensure t
+  :mode "\\.rs\\'"
   :init
   (setq rust-mode-treesitter-derive t))
 (setq rust-format-on-save t)
 
 (use-package racket-mode
-  :ensure t)
+  :ensure t
+  :mode "\\.rkt\\'")
 
 (setq auth-sources '("~/.authinfo.gpg"))
 
@@ -776,8 +785,9 @@ point reaches the beginning or end of the buffer, stop there."
 		(olivetti-mode -1)
 		(setq-local mode-line-format writing--mode-line-format)))
 
-(require 'markdown-mode)
-(setq markdown-command "pandoc")
+(use-package markdown-mode
+  :mode ("\\.md\\'" . markdown-mode)
+  :init (setq markdown-command "pandoc"))
 
 (use-package claude-code-ide
   :vc (:url "https://github.com/manzaltu/claude-code-ide.el" :rev :newest)
@@ -786,6 +796,11 @@ point reaches the beginning or end of the buffer, stop there."
   (claude-code-ide-emacs-tools-setup)) ; Optionally enable Emacs MCP tools
 
 (use-package exec-path-from-shell
+    :init
+    ;; Login, non-interactive: skips interactive-only setup (prompt theme,
+    ;; completion, etc.) that isn't needed just to read PATH/MANPATH.
+    ;; PATH-affecting exports therefore live in ~/.zprofile, not ~/.zshrc.
+    (setq exec-path-from-shell-arguments '("-l"))
     :config
     (exec-path-from-shell-initialize))
 
@@ -920,14 +935,42 @@ when `bendomine/nerd-icons-enabled' is non-nil."
 (add-hook 'window-size-change-functions #'bendomine/dashboard-resize)
 
 (use-package emacs-everywhere
-  :ensure t)
+  :ensure t
+  :defer t)
 
 (use-package helpful
-  :ensure t)
+  :ensure t
+  :commands (helpful-callable helpful-variable helpful-key))
 
 (use-package ess
-  :ensure t)
-(load "ess-autoloads")
+  :ensure t
+  :mode (("\\.R\\'" . R-mode) ("\\.r\\'" . R-mode)))
+
+(defun xkcd ()
+  "Get the latest xkcd comic and insert at point."
+  (interactive)
+  (let* ((data (with-current-buffer (url-retrieve-synchronously "https://xkcd.com/info.0.json")
+		 ;; Get response from xkcd info page
+		 (goto-char (point-min))
+		 (re-search-forward "\n\n")
+		 (prog1
+	    (buffer-substring (point) (point-max))
+	(kill-buffer (current-buffer)))))
+
+	 ;; Extract url of latest comic’s image
+	 (url (alist-get 'img (json-parse-string data :object-type 'alist)))
+
+	 ;; Request and extract image data, trying with _2x
+	 (url-2x (s-replace ".png" "_2x.png" url))
+	 (image-data (with-current-buffer (url-retrieve-synchronously url-2x)
+		       (goto-char (point-min))
+		       (re-search-forward "\n\n")
+		       (prog1
+			 (buffer-substring (point) (point-max))
+		       (kill-buffer (current-buffer)))))
+
+	 (image (create-image image-data 'png t)))
+    (insert-image image)))
 
 ;; Enable Evil
 (use-package evil
@@ -949,11 +992,6 @@ when `bendomine/nerd-icons-enabled' is non-nil."
   :config
   (evil-commentary-mode))
 
-(require 'ibuffer)
-(require 'helpful)
-(require 'magit)
-(require 'projectile)
-(require 'consult)
 (use-package general
   :ensure t
   :config
