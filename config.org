@@ -858,23 +858,23 @@ I’ll want to create some custom capture templates at some point, so I’ll ove
   (setq org-roam-capture-templates
         '(("d" "default" plain "%?"
   	 :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
-  			    "#+title: ${title}\n")
+  			    "#+title: ${title}\n#+author: Ben Domine\n")
   	 :unnarrowed t
   	 :empty-lines 1
   	 )
   	("p" "physics" plain "%?"
   	 :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
-  			    "#+startup: latexpreview\n#+latex_header: \\usepackage{physics}\n#+filetags: :physics:\n#+title: ${title}")
+  			    "#+startup: latexpreview\n#+latex_header: \\usepackage{physics}\n#+filetags: :physics:\n#+title: ${title}\n#+author: Ben Domine")
   	 :unnarrowed t
   	 )
   	("s" "statistics" plan "%?"
   	 :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
-  			    "#+startup: latexpreview\n#+filetags: :statistics:\n#+title: ${title}")
+  			    "#+startup: latexpreview\n#+latex_header: \\usepackage{physics}\n#+filetags: :statistics:\n#+title: ${title}\n#+author: Ben Domine")
   	 :unnarrowed t
   	 )
   	("m" "math" plain "%?"
   	 :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
-  			    "#+startup: latexpreview\n#+filetags: :math:\n#+title: ${title}")
+  			    "#+startup: latexpreview\n#+filetags: :math:\n#+title: ${title}\n#+author: Ben Domine")
   	 :unnarrowed t
   	 )))
 #+end_src
@@ -1379,7 +1379,7 @@ I’ll use pandoc as my markdown command.
 ** Claude Code
 This is the first AI integration I’m adding to my emacs config. I currently use claude code as my primary AI tool, so I’ll use a package specifically for that. Note that this requires claude code to be installed.
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
   (use-package claude-code-ide
     :vc (:url "https://github.com/manzaltu/claude-code-ide.el" :rev :newest)
     :commands (claude-code-ide-menu)
@@ -1702,7 +1702,13 @@ I want to use the spacebar as a leader, doom-style. I therefore have a big list 
      "."   'find-file
      ","   'consult-buffer
      "s"   'save-buffer
+     "c"   '(:ignore t :which-key "code")
      "cc"  'compile
+
+     ;; Latex commands
+     "l"   '(:ignore t :which-key "latex")
+     "lx"  'org-latex-preview
+     "lv"  'org-toggle-inline-images
 
      ;; File commands
      "f"   '(:ignore t :which-key "file")

@@ -486,23 +486,23 @@ point reaches the beginning or end of the buffer, stop there."
 (setq org-roam-capture-templates
       '(("d" "default" plain "%?"
 	 :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
-			    "#+title: ${title}\n")
+			    "#+title: ${title}\n#+author: Ben Domine\n")
 	 :unnarrowed t
 	 :empty-lines 1
 	 )
 	("p" "physics" plain "%?"
 	 :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
-			    "#+startup: latexpreview\n#+latex_header: \\usepackage{physics}\n#+filetags: :physics:\n#+title: ${title}")
+			    "#+startup: latexpreview\n#+latex_header: \\usepackage{physics}\n#+filetags: :physics:\n#+title: ${title}\n#+author: Ben Domine")
 	 :unnarrowed t
 	 )
 	("s" "statistics" plan "%?"
 	 :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
-			    "#+startup: latexpreview\n#+filetags: :statistics:\n#+title: ${title}")
+			    "#+startup: latexpreview\n#+latex_header: \\usepackage{physics}\n#+filetags: :statistics:\n#+title: ${title}\n#+author: Ben Domine")
 	 :unnarrowed t
 	 )
 	("m" "math" plain "%?"
 	 :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org"
-			    "#+startup: latexpreview\n#+filetags: :math:\n#+title: ${title}")
+			    "#+startup: latexpreview\n#+filetags: :math:\n#+title: ${title}\n#+author: Ben Domine")
 	 :unnarrowed t
 	 )))
 
@@ -789,12 +789,6 @@ point reaches the beginning or end of the buffer, stop there."
   :mode ("\\.md\\'" . markdown-mode)
   :init (setq markdown-command "pandoc"))
 
-(use-package claude-code-ide
-  :vc (:url "https://github.com/manzaltu/claude-code-ide.el" :rev :newest)
-  :commands (claude-code-ide-menu)
-  :config
-  (claude-code-ide-emacs-tools-setup)) ; Optionally enable Emacs MCP tools
-
 (use-package exec-path-from-shell
     :init
     ;; Login, non-interactive: skips interactive-only setup (prompt theme,
@@ -1012,7 +1006,13 @@ when `bendomine/nerd-icons-enabled' is non-nil."
    "."   'find-file
    ","   'consult-buffer
    "s"   'save-buffer
+   "c"   '(:ignore t :which-key "code")
    "cc"  'compile
+
+   ;; Latex commands
+   "l"   '(:ignore t :which-key "latex")
+   "lx"  'org-latex-preview
+   "lv"  'org-toggle-inline-images
 
    ;; File commands
    "f"   '(:ignore t :which-key "file")
