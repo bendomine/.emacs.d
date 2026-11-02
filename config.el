@@ -422,7 +422,7 @@ point reaches the beginning or end of the buffer, stop there."
 
 (package-install 'olivetti)
 (setq olivetti-body-width 0.6)
-(setq olivetti-minimum-body-width 80)
+(setq olivetti-minimum-body-width 100)
 (add-hook 'org-mode-hook #'olivetti-mode)
 
 (add-hook 'org-mode-hook 'org-indent-mode)
@@ -659,7 +659,13 @@ point reaches the beginning or end of the buffer, stop there."
 (setq display-line-numbers-type 'relative)
 (setq display-line-numbers-grow-only t)
 
-;; (add-hook 'prog-mode-hook 'electric-pair-local-mode)
+(electric-pair-mode -1)
+
+(use-package smartparens
+  :ensure smartparens
+  :hook (prog-mode)
+  :config
+  (require 'smartparens-config))
 
 (defun my/newline-and-indent-handler (&rest _ignored)
   "Vertically split an expression inside of a pair."
@@ -1103,8 +1109,8 @@ via its intercept maps, so evil-collection bindings cannot shadow them."
  "M-o" #'ace-window)
 
 (general-define-key
- "M-F" #'forward-sexp
- "M-B" #'backward-sexp)
+ "M-F" #'sp-forward-sexp
+ "M-B" #'sp-backward-sexp)
 
 (general-define-key
  "M-<up>"     #'swap-line-up
@@ -1196,3 +1202,25 @@ via its intercept maps, so evil-collection bindings cannot shadow them."
  "k"  #'evil-previous-visual-line
  "gj" #'evil-next-line
  "gk" #'evil-previous-line)
+
+(general-create-definer my-sexp-def
+  :states '(normal visual)
+  :prefix "-")
+
+(my-sexp-def
+ "f"  'sp-forward-sexp
+ "b"  'sp-backward-sexp
+ "u"  'sp-backward-up-sexp
+ "d"  'sp-down-sexp
+ "s"  'sp-forward-slurp-sexp
+ "S"  'sp-backward-slurp-sexp
+ "x"  'sp-forward-barf-sexp
+ "X"  'sp-backward-barf-sexp
+ "("  'sp-wrap-round
+ "["  'sp-wrap-square
+ "{"  'sp-wrap-curly
+ "r"  'sp-rewrap-sexp
+ "U"  'sp-splice-sexp
+ "k"  'sp-kill-sexp)
+
+(which-key-add-key-based-replacements "-" "sexp")

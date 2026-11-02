@@ -756,7 +756,7 @@ I also want my documents centered when on a larger screen, so I’ll use Olivett
 #+begin_src emacs-lisp
   (package-install 'olivetti)
   (setq olivetti-body-width 0.6)
-  (setq olivetti-minimum-body-width 80)
+  (setq olivetti-minimum-body-width 100)
   (add-hook 'org-mode-hook #'olivetti-mode)
 #+end_src
 
@@ -1123,13 +1123,13 @@ I want line numbers when programming. The last two lines here make sure the line
 #+end_src
 
 ** Parentheses
-I’ve historically just used the built-in electric-pair-mode.
+I’ve historically used the built-in electric-pair-mode, but I’m moving to smartparens instead. First, explicitly disable electric-pair-mode:
 #+begin_src emacs-lisp
-  ;; (add-hook 'prog-mode-hook 'electric-pair-local-mode)
+  (electric-pair-mode -1)
 #+end_src
 
-However, I’m going to try smartparens instead:
-#+begin_src emacs-lisp :tangle no
+Now the smartparens config:
+#+begin_src emacs-lisp
   (use-package smartparens
     :ensure smartparens
     :hook (prog-mode)
@@ -1806,11 +1806,11 @@ Some keys must win everywhere, even over evil-collection’s per-mode bindings (
 
 ** Global Chords
 *** S-Expressions
-The built-in keybindings for forward- and backward-sexp are prefixed with C-M-. I just generally dislike this combination.
+The built-in keybindings for forward- and backward-sexp are prefixed with C-M-. I just generally dislike this combination. Now that smartparens is active, I’ll use its pair-aware versions instead of the vanilla commands.
 #+begin_src emacs-lisp
   (general-define-key
-   "M-F" #'forward-sexp
-   "M-B" #'backward-sexp)
+   "M-F" #'sp-forward-sexp
+   "M-B" #'sp-backward-sexp)
 #+end_src
 
 *** Undo, Redo
@@ -1961,4 +1961,30 @@ I want to move by visual line and not by logical line.
    "k"  #'evil-previous-visual-line
    "gj" #'evil-next-line
    "gk" #'evil-previous-line)
+#+end_src
+
+*** Sexp Prefix
+`-` (~evil-previous-line-first-non-blank~) is a near-duplicate of the gk/k remap above, so I’ll sacrifice it as a dedicated single-key prefix for structural/sexp editing via smartparens, instead of going through the SPC leader. Mode-specific overrides of `-` (Dired’s “up directory”, Magit’s “revert”, etc.) still win in those buffers, since they live in keymaps more specific than ~evil-normal-state-map~.
+#+begin_src emacs-lisp
+  (general-create-definer my-sexp-def
+    :states '(normal visual)
+    :prefix "-")
+
+  (my-sexp-def
+   "f"  'sp-forward-sexp
+   "b"  'sp-backward-sexp
+   "u"  'sp-backward-up-sexp
+   "d"  'sp-down-sexp
+   "s"  'sp-forward-slurp-sexp
+   "S"  'sp-backward-slurp-sexp
+   "x"  'sp-forward-barf-sexp
+   "X"  'sp-backward-barf-sexp
+   "("  'sp-wrap-round
+   "["  'sp-wrap-square
+   "{"  'sp-wrap-curly
+   "r"  'sp-rewrap-sexp
+   "U"  'sp-splice-sexp
+   "k"  'sp-kill-sexp)
+
+  (which-key-add-key-based-replacements "-" "sexp")
 #+end_src
