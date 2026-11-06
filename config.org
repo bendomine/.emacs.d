@@ -971,8 +971,9 @@ I want to use the built-in eglot for LSP stuff.
            (java-ts-mode   . eglot-ensure))
     :config
     (add-to-list 'eglot-server-programs
-                 '(html-mode . ("vscode-html-language-server" "--stdio"))
-  	       '(sml-mode . ("~/Downloads/millet-ls-aarch64-apple-darwin"))))
+  	       '(ruby-mode . ("ruby-lsp")))
+    (add-to-list 'eglot-server-programs
+                 '(html-mode . ("vscode-html-language-server" "--stdio"))))
 #+end_src
 
 I also want to disable the delay used by eldoc before I get documentation displayed. This could get very annoying in the future, but it seems ok for now.

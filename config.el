@@ -562,8 +562,9 @@ point reaches the beginning or end of the buffer, stop there."
          (java-ts-mode   . eglot-ensure))
   :config
   (add-to-list 'eglot-server-programs
-               '(html-mode . ("vscode-html-language-server" "--stdio"))
-	       '(sml-mode . ("~/Downloads/millet-ls-aarch64-apple-darwin"))))
+	       '(ruby-mode . ("ruby-lsp")))
+  (add-to-list 'eglot-server-programs
+               '(html-mode . ("vscode-html-language-server" "--stdio"))))
 
 (setq eldoc-idle-delay 0.0)
 
