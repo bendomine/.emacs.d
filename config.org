@@ -368,9 +368,19 @@ I’ll try the pulsar.el package from Protesilaos instead of defining my own.
   	pulsar-region-change-face 'highlight
   	pulsar-highlight-face 'highlight
   	pulsar-window-change-face 'highlight
-  	pulsar-pulse-functions (add-to-list 'pulsar-pulse-functions 'evil-avy-goto-char)
-  	pulsar-pulse-functions (add-to-list 'pulsar-pulse-functions 'evil-search-next)
-  	pulsar-pulse-functions (add-to-list 'pulsar-pulse-functions 'evil-search-previous)))
+  	;; pulsar-pulse-functions (add-to-list 'pulsar-pulse-functions 'evil-avy-goto-char)
+  	;; pulsar-pulse-functions (add-to-list 'pulsar-pulse-functions 'evil-search-next)
+  	;; pulsar-pulse-functions (add-to-list 'pulsar-pulse-functions 'evil-search-previous)
+  	;; pulsar-pulse-functions (add-to-list 'pulsar-pulse-functions 'evil-window-right)
+  	pulsar-pulse-functions (append pulsar-pulse-functions
+  				       '(evil-avy-goto-char
+  					 evil-search-next
+  					 evil-search-previous
+  					 evil-window-right
+  					 evil-window-left
+  					 evil-window-up
+  					 evil-window-down
+  					 delete-window))))
 #+end_src
 
 I’ll also use the consult integration:
@@ -1304,6 +1314,15 @@ I want to use only one file for keeping secrets and other authentication tokens,
 I just like to have the ability to fold blocks of code at will. This is accomplished using the hideshow minor mode:
 #+begin_src emacs-lisp
   (add-hook 'prog-mode-hook 'hs-minor-mode)
+#+end_src
+
+** Rainbow Delimiters
+I’ll use the rainbow-delimiters package. This highlights delimiters like parentheses in pairs, making it easier to tell what a pair wraps. It’s not super necessary in some languages (like Python) but really helpful for, eg. emacs lisp.
+
+#+begin_src emacs-lisp
+  (use-package rainbow-delimiters
+    :ensure t
+    :hook 'prog-mode-hook)
 #+end_src
 
 * Projects

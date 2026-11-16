@@ -36,10 +36,10 @@
 	    gdscript-mode general glsl-mode helpful indent-bars
 	    jupyter lua-mode marginalia nix-mode nix-ts-mode olivetti
 	    orderless org-modern org-roam-ui ox-ipynb pdf-tools pulsar
-	    qml-mode racket-mode rust-mode scroll-on-jump
-	    scroll-restore smartparens sml-mode treemacs-projectile
-	    ultra-scroll valign vertico-posframe vertico-prescient
-	    vterm yasnippet))
+	    qml-mode racket-mode rainbow-delimiters rust-mode
+	    scroll-on-jump scroll-restore smartparens sml-mode
+	    treemacs-projectile ultra-scroll valign vertico-posframe
+	    vertico-prescient vterm yasnippet))
  '(package-vc-selected-packages
    '((claude-code-ide :url
 		      "https://github.com/manzaltu/claude-code-ide.el")
