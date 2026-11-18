@@ -31,11 +31,6 @@ Packages I’m currently developing will be in different files; load them also:
   (load "~/.emacs.d/my-project-manager.el")
   (load "~/.emacs.d/my-delete.el")
 #+end_src
-** Basic GUI Tweaks
-Tool bar and dark-frame appearance are now set in =early-init.el=, before the first frame exists, so there's no flash of an undecorated/light frame on startup.
-#+begin_src emacs-lisp
-  ;; (add-to-list 'default-frame-alist '(fullscreen . maximized))
-#+end_src
 
 ** Mac Rebinding
 I primarily use Mac, so I want most keybindings to use the command key. So, I’ll switch the command and control keys.
