@@ -18,10 +18,6 @@
  '(org-agenda-files '("~/Documents/PHYS4011/Midterm/review.org"))
  '(org-babel-python-command "python3")
  '(org-confirm-babel-evaluate nil)
- '(org-format-latex-options
-   '(:foreground default :background default :scale 1.55 :html-foreground
-		 "Black" :html-background "Transparent" :html-scale
-		 1.0 :matchers ("begin" "$1" "$" "$$" "\\(" "\\[")))
  '(org-hide-emphasis-markers t)
  '(org-highlight-latex-and-related '(native latex script entities))
  '(org-preview-latex-default-process 'dvisvgm)

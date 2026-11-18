@@ -577,7 +577,7 @@ I’ve had consistent issues with the emacs terminal emulators, so I’ll try th
 ** File Browser
 Just for fun, I’m going to try Dirvish as a better file browser. I’ll start by using their provided sample configuration.
 #+begin_src emacs-lisp
-  (setq insert-directory-program "gls" dired-use-ls-dired t)
+  (setq dired-use-ls-dired t)
   (setq dired-listing-switches
         "-l --almost-all --human-readable --group-directories-first --no-group")
   ;; this command is useful when you want to close the window of `dirvish-side'
@@ -819,6 +819,15 @@ I’ll also use Auctex for some other LaTeX utilities like syntax highlighting.
   (setq TeX-auto-save t)
   (setq TeX-parse-self t)
   (setq-default TeX-master nil)
+#+end_src
+
+LaTeX previews are rendered with ~dvisvgm~ (set in =custom.el=). The preview scale differs per machine. On the Mac, 1.55 looks right. On Linux, Emacs runs as an X11 app under XWayland with Hyprland's ~force_zero_scaling~: Org sizes previews from the panel's physical DPI (144), but XWayland tells Emacs the screen is 96 DPI, so text is drawn at 96. Scaling by 96/144 corrects for that; the extra 0.9 is taste, since Computer Modern reads larger than JetBrains Mono at the same x-height.
+#+begin_src emacs-lisp
+  (setq org-format-latex-options
+        (plist-put (copy-sequence org-format-latex-options) :scale
+                   (if (eq system-type 'gnu/linux)
+                       (* 1.55 (/ 96.0 144) 0.9)
+                     1.55)))
 #+end_src
 
 ** Encryption
