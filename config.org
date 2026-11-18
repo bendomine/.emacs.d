@@ -578,6 +578,7 @@ I’ve had consistent issues with the emacs terminal emulators, so I’ll try th
 Just for fun, I’m going to try Dirvish as a better file browser. I’ll start by using their provided sample configuration.
 #+begin_src emacs-lisp
   (setq dired-use-ls-dired t)
+  (if (eq system-type 'darwin) (setq insert-directory-program "gls"))
   (setq dired-listing-switches
         "-l --almost-all --human-readable --group-directories-first --no-group")
   ;; this command is useful when you want to close the window of `dirvish-side'

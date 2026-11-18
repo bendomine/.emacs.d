@@ -11,8 +11,6 @@
 (load "~/.emacs.d/my-project-manager.el")
 (load "~/.emacs.d/my-delete.el")
 
-;; (add-to-list 'default-frame-alist '(fullscreen . maximized))
-
 (setq mac-command-modifier 'control)
 (setq mac-control-modifier 'super)
 
@@ -319,6 +317,7 @@ point reaches the beginning or end of the buffer, stop there."
   :commands (vterm vterm-other-window))
 
 (setq dired-use-ls-dired t)
+(if (eq system-type 'darwin) (setq insert-directory-program "gls"))
 (setq dired-listing-switches
       "-l --almost-all --human-readable --group-directories-first --no-group")
 ;; this command is useful when you want to close the window of `dirvish-side'
