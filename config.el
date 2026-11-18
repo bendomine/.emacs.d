@@ -206,9 +206,19 @@ With a positive prefix arg, force on; with a non-positive prefix arg, force off.
 	pulsar-region-change-face 'highlight
 	pulsar-highlight-face 'highlight
 	pulsar-window-change-face 'highlight
-	pulsar-pulse-functions (add-to-list 'pulsar-pulse-functions 'evil-avy-goto-char)
-	pulsar-pulse-functions (add-to-list 'pulsar-pulse-functions 'evil-search-next)
-	pulsar-pulse-functions (add-to-list 'pulsar-pulse-functions 'evil-search-previous)))
+	;; pulsar-pulse-functions (add-to-list 'pulsar-pulse-functions 'evil-avy-goto-char)
+	;; pulsar-pulse-functions (add-to-list 'pulsar-pulse-functions 'evil-search-next)
+	;; pulsar-pulse-functions (add-to-list 'pulsar-pulse-functions 'evil-search-previous)
+	;; pulsar-pulse-functions (add-to-list 'pulsar-pulse-functions 'evil-window-right)
+	pulsar-pulse-functions (append pulsar-pulse-functions
+				       '(evil-avy-goto-char
+					 evil-search-next
+					 evil-search-previous
+					 evil-window-right
+					 evil-window-left
+					 evil-window-up
+					 evil-window-down
+					 delete-window))))
 
 (with-eval-after-load 'consult
 (require 'consult)
@@ -308,7 +318,7 @@ point reaches the beginning or end of the buffer, stop there."
   :ensure t
   :commands (vterm vterm-other-window))
 
-(setq insert-directory-program "gls" dired-use-ls-dired t)
+(setq dired-use-ls-dired t)
 (setq dired-listing-switches
       "-l --almost-all --human-readable --group-directories-first --no-group")
 ;; this command is useful when you want to close the window of `dirvish-side'
@@ -459,6 +469,12 @@ point reaches the beginning or end of the buffer, stop there."
 (setq TeX-auto-save t)
 (setq TeX-parse-self t)
 (setq-default TeX-master nil)
+
+(setq org-format-latex-options
+      (plist-put (copy-sequence org-format-latex-options) :scale
+                 (if (eq system-type 'gnu/linux)
+                     (* 1.55 (/ 96.0 144) 0.9)
+                   1.55)))
 
 (require 'org-crypt)
 (org-crypt-use-before-save-magic)
@@ -745,6 +761,10 @@ point reaches the beginning or end of the buffer, stop there."
 (setq auth-sources '("~/.authinfo.gpg"))
 
 (add-hook 'prog-mode-hook 'hs-minor-mode)
+
+(use-package rainbow-delimiters
+  :ensure t
+  :hook 'prog-mode-hook)
 
 (require 'projectile)
 (defun start-web-server-in-project ()
