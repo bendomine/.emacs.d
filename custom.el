@@ -18,7 +18,6 @@
  '(org-agenda-files '("~/Documents/PHYS4011/Midterm/review.org"))
  '(org-babel-python-command "python3")
  '(org-confirm-babel-evaluate nil)
- '(org-hide-emphasis-markers t)
  '(org-highlight-latex-and-related '(native latex script entities))
  '(org-preview-latex-default-process 'dvisvgm)
  '(org-return-follows-link t)
